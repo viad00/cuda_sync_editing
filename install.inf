@@ -3,7 +3,7 @@ title=Sync Editing
 desc=Sync Editing like in SynWrite editor. You select block, and then you can rename equal identifiers in this block, by editing one identifier.
 type=cudatext-plugin
 subdir=cuda_sync_editing
-homepage=
+homepage=https://github.com/viad00/cuda_sync_editing
 
 [item2]
 section=commands
