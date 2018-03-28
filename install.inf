@@ -1,0 +1,16 @@
+[info]
+title=Sync Editing
+desc=Some description
+type=cudatext-plugin
+subdir=cuda_syncediting
+homepage=
+
+[item2]
+section=commands
+caption=SyncEditing
+method=Toggle
+
+[item3]
+section=commands
+caption=SyncEditing Reset
+method=Reset
