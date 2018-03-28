@@ -1,16 +1,16 @@
 [info]
 title=Sync Editing
-desc=Some description
+desc=Sync Editing like in SynWrite editor. You select block, and then you can rename equal identifiers in this block, by editing one identifier.
 type=cudatext-plugin
-subdir=cuda_syncediting
+subdir=cuda_sync_editing
 homepage=
 
 [item2]
 section=commands
-caption=SyncEditing
+caption=SyncEditing\Toggle
 method=Toggle
 
 [item3]
 section=commands
-caption=SyncEditing Reset
+caption=SyncEditing\Reset
 method=Reset
