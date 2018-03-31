@@ -4,6 +4,8 @@
 # 2018
 from cudatext import *
 import re
+import os
+import importlib
 # Load settings
 from .settings_default import *
 
@@ -114,6 +116,13 @@ class Command:
                     # Check if this not a part of other word
                     if index - 1 >= 0 \
                        and not re.match(FIND_REGEX, current_string[index - 1]) \
+                       and index + len(word) < len(current_string) \
+                       and not re.match(FIND_REGEX, current_string[index + len(word)]):
+                        ed_self.attr(MARKERS_ADD, MARKER_CODE, index, y, len(word), color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, border_down=1)
+                        ed_self.set_caret(index, y, id=CARET_ADD)
+                    # Check if it is on start of line
+                    elif index - 1 < 0 \
+                       and index + len(word) < len(current_string) \
                        and not re.match(FIND_REGEX, current_string[index + len(word)]):
                         ed_self.attr(MARKERS_ADD, MARKER_CODE, index, y, len(word), color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, border_down=1)
                         ed_self.set_caret(index, y, id=CARET_ADD)
@@ -139,3 +148,18 @@ class Command:
                 self.editing = False
                 self.reset()
                 ed_self.set_caret(first_caret[0], first_caret[1], first_caret[2], first_caret[3])
+                
+    
+    def config(self):
+        settings_file = os.path.join(app_path(APP_DIR_SETTINGS), 'cuda_sync_editing.py')
+        if os.path.exists(settings_file):
+            file_open(settings_file)
+        else:
+            setting_file = open(settings_file, 'w')
+            setting_file.write('# See configuration options in <plugin directory>/settings_default.py\n')
+            setting_file.close()
+            file_open(settings_file)
+
+
+    def default_config(self):
+        file_open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings_default.py'))

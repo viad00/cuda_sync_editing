@@ -1,4 +1,6 @@
 # Default setting for Sync Editing plugin
+import sys
+from cudatext import *
 
 # Check if you need case-sensitive search
 CASE_SENSITIVE = True
@@ -13,9 +15,9 @@ MARKER_BORDER_COLOR = 0xFF0000
 # BG color for selected text
 MARKER_BG_COLOR_SELECTED = 0xFFDDDD
 
-
-# Load user settings from <plugin-directory>/settings_user.py
+# Load user settings from cuda_sync_editing.py
+sys.path.append(app_path(APP_DIR_SETTINGS))
 try:
-    from .settings_user import *
+    from cuda_sync_editing import *
 except ImportError:
     pass

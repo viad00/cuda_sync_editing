@@ -18,3 +18,15 @@ method=toggle
 section=commands
 caption=SyncEditing\Reset
 method=reset
+
+[item10]
+section=commands
+caption=SyncEditing\Config
+method=config
+menu=o
+
+[item11]
+section=commands
+caption=SyncEditing\Default config
+method=default_config
+menu=o
