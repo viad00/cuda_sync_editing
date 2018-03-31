@@ -1,8 +1,11 @@
-# Disclaimer: this is WIP plugin, so it not supposed to work (by now)
-# Current TODO: Select variables from brackets
-
+# Sync Editing plugin for CudaText
+# by Vladislav Utkin <vlad@teamfnd.ru>
+# MIT License
+# 2018
 from cudatext import *
 import re
+# Load settings
+from .settings_default import *
 
 
 def delete_strings(text):
@@ -42,77 +45,97 @@ def delete_strings(text):
         text = text.replace(substr, '')
     return text
 
+
+
 class Command:
-    CASE_SENSITIVE = True
-    BREAK_CHARS = ['(', ')', ':', "'", '"', '=', '{', '}', '[', ']']
+    start = None
+    end = None
+    selected = False 
+    editing = False
     
-    
-    def Toggle(self):
+    def toggle(self):
         original = ed.get_text_sel()
         # Check if we have selection of text
         if original == '':
+            msg_status('Sync Editing: You need to select text that you want to modify')
             return
-        start, end = ed.get_sel_lines()
-        text = original
-        # Delete all comments
-        to_delete = set()
-        try:
-            comments = lexer_proc(LEXER_GET_PROP, ed.get_prop(PROP_LEXER_FILE))['c_line']
-        except TypeError as e:
-            print('Current lexer is undefined ({})'.format(str(e)))
-            comments = ''
-        for i in range(len(text)):
-            # Check comments
-            if text[i:i-1+len(comments)] == comments:
-                y = i
-                while text[y] != '\n':
-                    y += 1
-                to_delete.add(text[i:y])
-        # Delete them
-        for substr in to_delete:
-            text = text.replace(substr, '')
-        # Delete all strings
-        text = delete_strings(text)
-        # Check if we need case-sensitive search
-        if not self.CASE_SENSITIVE:
-            text = lower(text)
-        # Split string on substrings which are supposed to be variables
-        substrs = set(text.split())
-        for char in self.BREAK_CHARS:
-            to_add = set()
-            prev_to_add = set()
-            to_delete = set()
-            for substr in substrs:
-                to_add |= set(substr.split(char))
-                if prev_to_add != to_add:
-                    to_delete.add(substr)
-                prev_to_add = to_add
-            substrs -= to_delete
-            substrs |= to_add
-        # Find and delete all substrings that are not looks like statements
-        to_delete = set()
-        for substr in substrs:
-            if len(substr) <= 1:
-                to_delete.add(substr)
-                continue
-            for char in self.BREAK_CHARS:
-                if char in substr:
-                    to_delete.add(substr)
-        substrs -= to_delete
-        # Hightlight all found statements
-        for i in range(start, end+1):
-            cur_line = ed.get_text_line(i)
-            # Check that current line is not comment
-            if len(cur_line.split()) > 0 and cur_line.split()[0][:len(comments)] == comments:
-                continue
-            # Delete strings from line
-            cur_line = delete_strings(cur_line)
-            for substr in substrs:
-                indexes = [m.start() for m in re.finditer(substr, cur_line)]
-                for index in indexes:
-                    if index - 1 > 0 and cur_line[index-1] == ' ':
-                        ed.markers(MARKERS_ADD, index, i)
-                        
+        # Save cords
+        self.start, self.end = ed.get_sel_lines()
+        self.selected = True
+        # Break text selection
+        ed.set_sel_rect(0,0,0,0)
+        # Mark text that was selected
+        for y in range(self.start, self.end+1):
+            ed.attr(MARKERS_ADD, MARKER_CODE, 0, y, len(ed.get_text_line(y)), color_bg=MARKER_BG_COLOR_SELECTED)
+        msg_status('Sync Editing: Now, click at the start of the word that you want to modify')
+        
     
-    def Reset(self):
-        ed.markers(MARKERS_DELETE_ALL)
+    def reset(self):
+        self.start = None
+        self.end = None
+        self.selected = False
+        ed.attr(MARKERS_DELETE_BY_TAG, tag=MARKER_CODE)
+        msg_status('Sync Editing: Selection reset')
+        
+    
+    def on_click(self, ed_self, state):
+        if self.selected:
+            ed_self.attr(MARKERS_DELETE_BY_TAG, tag=MARKER_CODE)
+            # Save comments to check if this line is comment
+            comments = ''
+            lexer = ed.get_prop(PROP_LEXER_FILE)
+            if lexer:
+                prop = lexer_proc(LEXER_GET_PROP, lexer)
+                if prop:
+                    comments = prop['c_line']
+            # Set word to search
+            caret = ed_self.get_carets()[0]
+            word = re.match(FIND_REGEX, ed_self.get_text_line(caret[1])[caret[0]:])
+            if not word:
+                msg_status('Sync Editing: No word! Try again, reset or check regular expression in settings')
+                return
+            word = str(word.group(0))
+            # Find word
+            for y in range(self.start, self.end+1):
+                current_string = ed_self.get_text_line(y)
+                # Check if this line is empty
+                if len(current_string.split()) == 0:
+                    continue
+                # Check if this line is comment
+                if not comments == '' and current_string.split()[0] == comments:
+                    continue
+                # Delete all strings
+                current_string = delete_strings(current_string)
+                # Check if CASE_SENSITIVE need
+                if not CASE_SENSITIVE:
+                    current_string = lower(current_string)
+                indexes = [m.start() for m in re.finditer(word, current_string)]
+                for index in indexes:
+                    # Check if this not a part of other word
+                    if index - 1 >= 0 \
+                       and not re.match(FIND_REGEX, current_string[index - 1]) \
+                       and not re.match(FIND_REGEX, current_string[index + len(word)]):
+                        ed_self.attr(MARKERS_ADD, MARKER_CODE, index, y, len(word), color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, border_down=1)
+                        ed_self.set_caret(index, y, id=CARET_ADD)
+            # Reset selection
+            self.selected = False
+            self.editing = True
+            # Save 'green' position of first caret
+            first_caret = ed_self.get_carets()[0]
+            self.start = first_caret[1]
+            self.end = first_caret[3]
+        elif self.editing:
+            self.editing = False
+            self.reset()
+            first_caret = ed_self.get_carets()[0]
+            ed_self.set_caret(first_caret[0], first_caret[1], first_caret[2], first_caret[3])
+            
+    
+    def on_caret(self, ed_self):
+        if self.editing:
+            # If we leaved original line, we have to break selection
+            first_caret = ed_self.get_carets()[0]
+            if first_caret[1] < self.start or first_caret[3] > self.end:
+                self.editing = False
+                self.reset()
+                ed_self.set_caret(first_caret[0], first_caret[1], first_caret[2], first_caret[3])

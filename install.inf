@@ -5,12 +5,16 @@ type=cudatext-plugin
 subdir=cuda_sync_editing
 homepage=https://github.com/viad00/cuda_sync_editing
 
+[item1]
+section=events
+events=on_click,on_caret
+
 [item2]
 section=commands
 caption=SyncEditing\Toggle
-method=Toggle
+method=toggle
 
 [item3]
 section=commands
 caption=SyncEditing\Reset
-method=Reset
+method=reset
