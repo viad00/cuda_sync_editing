@@ -2,13 +2,34 @@
 # by Vladislav Utkin <vlad@teamfnd.ru>
 # MIT License
 # 2018
-from cudatext import *
 import re
 import os
-import importlib
-# Load settings
-from .settings_default import *
+from cudatext import *
 
+fn_config = os.path.join(app_path(APP_DIR_SETTINGS), 'cuda_sync_editing.ini')
+
+# Uniq value for all marker plugins
+MARKER_CODE = 1002 
+
+# Check if you need case-sensitive search
+CASE_SENSITIVE = True
+# Regex for finding words
+FIND_REGEX = r'[a-zA-Z0-9_]+'
+# Code for markers
+# BG color for markers
+MARKER_BG_COLOR = 0xFFAAAA
+# Border color for markers
+MARKER_BORDER_COLOR = 0xFF0000
+# BG color for selected text
+MARKER_BG_COLOR_SELECTED = 0xFFDDDD
+
+
+def bool_to_str(v):
+    return '1' if v else '0'
+
+def str_to_bool(s):
+    return s=='1'
+    
 
 def delete_strings(text):
     to_delete = set()
@@ -48,12 +69,17 @@ def delete_strings(text):
     return text
 
 
-
 class Command:
     start = None
     end = None
     selected = False 
     editing = False
+    
+    def __init__(self):
+    
+        global CASE_SENSITIVE
+        CASE_SENSITIVE = str_to_bool(ini_read(fn_config, 'op', 'case_sens', '1'))
+    
     
     def toggle(self):
         original = ed.get_text_sel()
@@ -151,15 +177,6 @@ class Command:
                 
     
     def config(self):
-        settings_file = os.path.join(app_path(APP_DIR_SETTINGS), 'cuda_sync_editing.py')
-        if os.path.exists(settings_file):
-            file_open(settings_file)
-        else:
-            setting_file = open(settings_file, 'w')
-            setting_file.write('# See configuration options in <plugin directory>/settings_default.py\n')
-            setting_file.close()
-            file_open(settings_file)
-
-
-    def default_config(self):
-        file_open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings_default.py'))
+    
+        ini_write(fn_config, 'op', 'case_sens', bool_to_str(CASE_SENSITIVE))
+        file_open(fn_config)
