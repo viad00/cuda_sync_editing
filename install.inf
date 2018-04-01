@@ -16,17 +16,11 @@ method=toggle
 
 [item3]
 section=commands
-caption=SyncEditing\Reset
+caption=SyncEditing\Cancel
 method=reset
 
 [item10]
 section=commands
 caption=SyncEditing\Config
 method=config
-menu=o
-
-[item11]
-section=commands
-caption=SyncEditing\Default config
-method=default_config
 menu=o
