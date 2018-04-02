@@ -4,9 +4,11 @@
 # 2018
 import re
 import os
+import json
 from cudatext import *
+from cudatext_keys import *
 
-fn_config = os.path.join(app_path(APP_DIR_SETTINGS), 'cuda_sync_editing.ini')
+fn_config = os.path.join(app_path(APP_DIR_SETTINGS), 'user.json')
 
 # Uniq value for all marker plugins
 MARKER_CODE = 1002 
@@ -20,15 +22,6 @@ FIND_REGEX = r'[a-zA-Z0-9_]+'
 MARKER_BG_COLOR = 0xFFAAAA
 # Border color for markers
 MARKER_BORDER_COLOR = 0xFF0000
-# BG color for selected text
-MARKER_BG_COLOR_SELECTED = 0xFFDDDD
-
-
-def bool_to_str(v):
-    return '1' if v else '0'
-
-def str_to_bool(s):
-    return s=='1'
     
 
 def delete_strings(text):
@@ -74,11 +67,18 @@ class Command:
     end = None
     selected = False 
     editing = False
+    attributes = set()
+    word_length = None
+    
     
     def __init__(self):
-    
-        global CASE_SENSITIVE
-        CASE_SENSITIVE = str_to_bool(ini_read(fn_config, 'op', 'case_sens', '1'))
+        global MARKER_BORDER_COLOR
+        global MARKER_BG_COLOR
+        parsed_config = json.load(open(fn_config))
+        if 'syncedit_color_marker_back' in parsed_config:
+            MARKER_BG_COLOR = int(parsed_config['syncedit_color_marker_back'].replace('#', '0x'), 16)
+        if 'syncedit_color_marker_border' in parsed_config:
+            MARKER_BORDER_COLOR = int(parsed_config['syncedit_color_marker_border'].replace('#', '0x'), 16)
     
     
     def toggle(self):
@@ -93,8 +93,7 @@ class Command:
         # Break text selection
         ed.set_sel_rect(0,0,0,0)
         # Mark text that was selected
-        for y in range(self.start, self.end+1):
-            ed.attr(MARKERS_ADD, MARKER_CODE, 0, y, len(ed.get_text_line(y)), color_bg=MARKER_BG_COLOR_SELECTED)
+        ed.set_prop(PROP_MARKED_RANGE, (self.start, self.end))
         msg_status('Sync Editing: Now, click at the start of the word that you want to modify')
         
     
@@ -103,19 +102,28 @@ class Command:
         self.end = None
         self.selected = False
         ed.attr(MARKERS_DELETE_BY_TAG, tag=MARKER_CODE)
+        ed.set_prop(PROP_MARKED_RANGE, (-1, -1))
         msg_status('Sync Editing: Selection reset')
         
     
     def on_click(self, ed_self, state):
+        global CASE_SENSITIVE
+        global FIND_REGEX
         if self.selected:
             ed_self.attr(MARKERS_DELETE_BY_TAG, tag=MARKER_CODE)
             # Save comments to check if this line is comment
             comments = ''
-            lexer = ed.get_prop(PROP_LEXER_FILE)
+            lexer = ed_self.get_prop(PROP_LEXER_FILE)
             if lexer:
                 prop = lexer_proc(LEXER_GET_PROP, lexer)
                 if prop:
                     comments = prop['c_line']
+                # Load lexer-specific config values
+                lexer_config = json.load(open(os.path.join(app_path(APP_DIR_SETTINGS), 'lexer {}.json'.format(ed_self.get_prop(PROP_LEXER_FILE)))))
+                if 'case_sens' in lexer_config:
+                    CASE_SENSITIVE = lexer_config['case_sens']
+                if 'word_chars' in lexer_config:
+                    FIND_REGEX = FIND_REGEX[:-2] + lexer_config['word_chars'] + FIND_REGEX[-2:]
             # Set word to search
             caret = ed_self.get_carets()[0]
             word = re.match(FIND_REGEX, ed_self.get_text_line(caret[1])[caret[0]:])
@@ -144,39 +152,49 @@ class Command:
                        and not re.match(FIND_REGEX, current_string[index - 1]) \
                        and index + len(word) < len(current_string) \
                        and not re.match(FIND_REGEX, current_string[index + len(word)]):
-                        ed_self.attr(MARKERS_ADD, MARKER_CODE, index, y, len(word), color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, border_down=1)
+                        ed_self.attr(MARKERS_ADD, MARKER_CODE, index, y, len(word), color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, border_down=1, border_up=1, border_left=1, border_right=1)
                         ed_self.set_caret(index, y, id=CARET_ADD)
                     # Check if it is on start of line
                     elif index - 1 < 0 \
                        and index + len(word) < len(current_string) \
                        and not re.match(FIND_REGEX, current_string[index + len(word)]):
-                        ed_self.attr(MARKERS_ADD, MARKER_CODE, index, y, len(word), color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, border_down=1)
+                        ed_self.attr(MARKERS_ADD, MARKER_CODE, index, y, len(word), color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, border_down=1, border_up=1, border_left=1, border_right=1)
                         ed_self.set_caret(index, y, id=CARET_ADD)
             # Reset selection
             self.selected = False
             self.editing = True
             # Save 'green' position of first caret
-            first_caret = ed_self.get_carets()[0]
-            self.start = first_caret[1]
-            self.end = first_caret[3]
+            last_caret = ed_self.get_carets()[0]
+            self.start = last_caret[1]
+            self.end = last_caret[3]
         elif self.editing:
             self.editing = False
             self.reset()
-            first_caret = ed_self.get_carets()[0]
-            ed_self.set_caret(first_caret[0], first_caret[1], first_caret[2], first_caret[3])
+            last_caret = ed_self.get_carets()[0]
+            ed_self.set_caret(last_caret[0], last_caret[1], last_caret[2], last_caret[3])
             
     
     def on_caret(self, ed_self):
         if self.editing:
             # If we leaved original line, we have to break selection
-            first_caret = ed_self.get_carets()[0]
-            if first_caret[1] < self.start or first_caret[3] > self.end:
+            last_caret = ed_self.get_carets()[0]
+            if last_caret[1] < self.start or last_caret[3] > self.end:
                 self.editing = False
                 self.reset()
-                ed_self.set_caret(first_caret[0], first_caret[1], first_caret[2], first_caret[3])
-                
+                ed_self.set_caret(last_caret[0], last_caret[1], last_caret[2], last_caret[3])
+                 
     
     def config(self):
-    
-        ini_write(fn_config, 'op', 'case_sens', bool_to_str(CASE_SENSITIVE))
-        file_open(fn_config)
+        msg_box('\
+To configure plugin, open lexer-specific config in CudaText (Options / Settings-more / Settings lexer specific) and write there options:\n\
+\n\
+  "case_sens": true, //or false\n\
+  "word_chars": "here additional word chars",\n\
+\n\
+Option "word_chars" is standard CudaText option, used by this plugin.\n\
+Option "case_sens" is new option, later will be used by other plugins too.\n\
+\n\
+Also you can write to CudaText\'s user.json options:\n\
+\n\
+  "syncedit_color_marker_back": "#rrggbb",\n\
+  "syncedit_color_marker_border": "#rrggbb",', MB_OK)
