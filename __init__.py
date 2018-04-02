@@ -117,11 +117,11 @@ class Command:
                 if prop:
                     comments = prop['c_line']
                 # Load lexer-specific config values
-                lexer_config = json.load(open(os.path.join(app_path(APP_DIR_SETTINGS), 'lexer {}.json'.format(ed_self.get_prop(PROP_LEXER_FILE)))))
-                if 'case_sens' in lexer_config:
-                    CASE_SENSITIVE = lexer_config['case_sens']
-                if 'word_chars' in lexer_config:
-                    FIND_REGEX = FIND_REGEX[:-2] + lexer_config['word_chars'] + FIND_REGEX[-2:]
+                file_config = os.path.join(app_path(APP_DIR_SETTINGS), 'lexer {}.json'.format(ed_self.get_prop(PROP_LEXER_FILE)))
+                if os.path.exists(file_config):
+                    lexer_config = json.load(open(file_config))
+                    CASE_SENSITIVE = lexer_config.get('case_sens', True)
+                    FIND_REGEX = FIND_REGEX[:-2] + lexer_config.get('word_chars', '') + FIND_REGEX[-2:]
             # Set word to search
             caret = ed_self.get_carets()[0]
             word = re.match(FIND_REGEX, ed_self.get_text_line(caret[1])[caret[0]:])
@@ -169,7 +169,7 @@ class Command:
             self.editing = False
             self.reset()
             first_caret = ed_self.get_carets()[0]
-            ed_self.set_caret(first_caret[0], first_caret[1], first_caret[2], first_caret[3])
+            ed_self.set_caret(*first_caret)
             
     
     def on_caret(self, ed_self):
@@ -179,7 +179,7 @@ class Command:
             if first_caret[1] < self.start or first_caret[3] > self.end:
                 self.editing = False
                 self.reset()
-                ed_self.set_caret(first_caret[0], first_caret[1], first_caret[2], first_caret[3])
+                ed_self.set_caret(*first_caret)
                  
     
     def config(self):
