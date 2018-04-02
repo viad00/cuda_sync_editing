@@ -7,6 +7,7 @@ import os
 import json
 from cudatext import *
 from cudatext_keys import *
+from cudax_lib import html_color_to_int
 
 fn_config = os.path.join(app_path(APP_DIR_SETTINGS), 'user.json')
 
@@ -74,9 +75,9 @@ class Command:
         global MARKER_BG_COLOR
         parsed_config = json.load(open(fn_config))
         if 'syncedit_color_marker_back' in parsed_config:
-            MARKER_BG_COLOR = int(parsed_config['syncedit_color_marker_back'].replace('#', '0x'), 16)
+            MARKER_BG_COLOR = html_color_to_int(parsed_config['syncedit_color_marker_back'])
         if 'syncedit_color_marker_border' in parsed_config:
-            MARKER_BORDER_COLOR = int(parsed_config['syncedit_color_marker_border'].replace('#', '0x'), 16)
+            MARKER_BORDER_COLOR = html_color_to_int(parsed_config['syncedit_color_marker_border'])
     
     
     def toggle(self):
