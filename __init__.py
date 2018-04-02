@@ -67,8 +67,6 @@ class Command:
     end = None
     selected = False 
     editing = False
-    attributes = set()
-    word_length = None
     
     
     def __init__(self):
@@ -164,24 +162,24 @@ class Command:
             self.selected = False
             self.editing = True
             # Save 'green' position of first caret
-            last_caret = ed_self.get_carets()[0]
-            self.start = last_caret[1]
-            self.end = last_caret[3]
+            first_caret = ed_self.get_carets()[0]
+            self.start = first_caret[1]
+            self.end = first_caret[3]
         elif self.editing:
             self.editing = False
             self.reset()
-            last_caret = ed_self.get_carets()[0]
-            ed_self.set_caret(last_caret[0], last_caret[1], last_caret[2], last_caret[3])
+            first_caret = ed_self.get_carets()[0]
+            ed_self.set_caret(first_caret[0], first_caret[1], first_caret[2], first_caret[3])
             
     
     def on_caret(self, ed_self):
         if self.editing:
             # If we leaved original line, we have to break selection
-            last_caret = ed_self.get_carets()[0]
-            if last_caret[1] < self.start or last_caret[3] > self.end:
+            first_caret = ed_self.get_carets()[0]
+            if first_caret[1] < self.start or first_caret[3] > self.end:
                 self.editing = False
                 self.reset()
-                ed_self.set_caret(last_caret[0], last_caret[1], last_caret[2], last_caret[3])
+                ed_self.set_caret(first_caret[0], first_caret[1], first_caret[2], first_caret[3])
                  
     
     def config(self):
