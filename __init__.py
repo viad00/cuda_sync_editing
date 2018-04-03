@@ -167,6 +167,10 @@ class Command:
             first_caret = ed_self.get_carets()[0]
             self.start = first_caret[1]
             self.end = first_caret[3]
+            # support reverse selection
+            if self.start > self.end:
+                self.start, self.end = self.end, self.start
+                
         elif self.editing:
             self.editing = False
             self.reset()
