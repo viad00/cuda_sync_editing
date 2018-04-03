@@ -186,7 +186,7 @@ class Command:
     
     def config(self):
         msg_box(
-'''To configure plugin, open lexer-specific config in CudaText (Options / Settings-more / Settings lexer specific) and write there options:
+'''To configure Sync Editing, open lexer-specific config in CudaText (Options / Settings-more / Settings lexer specific) and write there options: case sensitive, regular expression for identifiers:
 
   "case_sens": true,
   "id_regex": "[a-zA-Z_]\\\\w*",
@@ -195,4 +195,4 @@ Also you can write to CudaText's user.json these options:
 
   "syncedit_color_marker_back": "#rrggbb",
   "syncedit_color_marker_border": "#rrggbb",
-''', MB_OK)
+''', MB_OK+MB_ICONINFO)
