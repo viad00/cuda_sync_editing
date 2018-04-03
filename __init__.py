@@ -17,7 +17,8 @@ MARKER_CODE = 1002
 # Check if you need case-sensitive search
 CASE_SENSITIVE = True
 # Regex for finding words
-FIND_REGEX = r'[a-zA-Z0-9_]+'
+FIND_REGEX_DEFAULT = r'[a-zA-Z_]\w*'
+FIND_REGEX = FIND_REGEX_DEFAULT
 # Code for markers
 # BG color for markers
 MARKER_BG_COLOR = 0xFFAAAA
@@ -122,7 +123,7 @@ class Command:
                 if os.path.exists(file_config):
                     lexer_config = json.load(open(file_config))
                     CASE_SENSITIVE = lexer_config.get('case_sens', True)
-                    FIND_REGEX = FIND_REGEX[:-2] + lexer_config.get('word_chars', '') + FIND_REGEX[-2:]
+                    FIND_REGEX = lexer_config.get('id_regex', FIND_REGEX_DEFAULT)
             # Set word to search
             caret = ed_self.get_carets()[0]
             word = re.match(FIND_REGEX, ed_self.get_text_line(caret[1])[caret[0]:])
@@ -184,16 +185,14 @@ class Command:
                  
     
     def config(self):
-        msg_box('\
-To configure plugin, open lexer-specific config in CudaText (Options / Settings-more / Settings lexer specific) and write there options:\n\
-\n\
-  "case_sens": true, //or false\n\
-  "word_chars": "here additional word chars",\n\
-\n\
-Option "word_chars" is standard CudaText option, used by this plugin.\n\
-Option "case_sens" is new option, later will be used by other plugins too.\n\
-\n\
-Also you can write to CudaText\'s user.json options:\n\
-\n\
-  "syncedit_color_marker_back": "#rrggbb",\n\
-  "syncedit_color_marker_border": "#rrggbb",', MB_OK)
+        msg_box(
+'''To configure plugin, open lexer-specific config in CudaText (Options / Settings-more / Settings lexer specific) and write there options:
+
+  "case_sens": true,
+  "id_regex": "[a-zA-Z_]\\\\w*",
+
+Also you can write to CudaText's user.json these options:
+
+  "syncedit_color_marker_back": "#rrggbb",
+  "syncedit_color_marker_border": "#rrggbb",
+''', MB_OK)
