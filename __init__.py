@@ -84,8 +84,8 @@ class Command:
     def toggle(self):
         original = ed.get_text_sel()
         # Check if we have selection of text
-        if original == '':
-            msg_status('Sync Editing: You need to select text that you want to modify')
+        if not original:
+            msg_status('Sync Editing: Make selection first')
             return
         # Save cords
         self.start, self.end = ed.get_sel_lines()
@@ -138,7 +138,7 @@ class Command:
                 if len(current_string.split()) == 0:
                     continue
                 # Check if this line is comment
-                if not comments == '' and current_string.split()[0] == comments:
+                if comments and current_string.split()[0] == comments:
                     continue
                 # Delete all strings
                 current_string = delete_strings(current_string)
