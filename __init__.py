@@ -69,6 +69,7 @@ class Command:
     end = None
     selected = False 
     editing = False
+    dictionary = {}
     
     
     def __init__(self):
@@ -94,7 +95,23 @@ class Command:
         ed.set_sel_rect(0,0,0,0)
         # Mark text that was selected
         ed.set_prop(PROP_MARKED_RANGE, (self.start, self.end))
-        msg_status('Sync Editing: Now, click at the start of the word that you want to modify')
+        # Find all occurences of regex
+        for y in range(self.start, self.end+1):
+            line = ed.get_text_line(y)
+            for x in range(len(line)):
+                token = ed.get_token(TOKEN_AT_POS, x, y)
+                idd = token[2]
+                x += len(token[2])
+                idd = idd.strip()
+                if token[3] != 'Id':
+                    continue
+                if idd in self.dictionary:
+                    if token not in self.dictionary[idd]:
+                        self.dictionary[idd].append((token))
+                else:
+                    self.dictionary[idd] = [(token)]
+        print(self.dictionary)
+        msg_status('Sync Editing: Now, on the word that you want to modify')
         
     
     def reset(self):
@@ -111,58 +128,22 @@ class Command:
         global FIND_REGEX
         if self.selected:
             ed_self.attr(MARKERS_DELETE_BY_TAG, tag=MARKER_CODE)
-            # Save comments to check if this line is comment
-            comments = ''
-            lexer = ed_self.get_prop(PROP_LEXER_FILE)
-            if lexer:
-                prop = lexer_proc(LEXER_GET_PROP, lexer)
-                if prop:
-                    comments = prop['c_line']
-                # Load lexer-specific config values
-                file_config = os.path.join(app_path(APP_DIR_SETTINGS), 'lexer {}.json'.format(ed_self.get_prop(PROP_LEXER_FILE)))
-                if os.path.exists(file_config):
-                    lexer_config = json.load(open(file_config))
-                    CASE_SENSITIVE = lexer_config.get('case_sens', True)
-                    FIND_REGEX = lexer_config.get('id_regex', FIND_REGEX_DEFAULT)
-            # Set word to search
+            # Find where we are
+            our_key = None
             caret = ed_self.get_carets()[0]
-            word = re.match(FIND_REGEX, ed_self.get_text_line(caret[1])[caret[0]:])
-            if not word:
-                msg_status('Sync Editing: No word! Try again, reset or check regular expression in settings')
-                return
-            word = str(word.group(0))
-            # Find word
-            for y in range(self.start, self.end+1):
-                current_string = ed_self.get_text_line(y)
-                # Check if this line is empty
-                if len(current_string.split()) == 0:
-                    continue
-                # Check if this line is comment
-                if comments and current_string.split()[0] == comments:
-                    continue
-                # Delete all strings
-                current_string = delete_strings(current_string)
-                # Check if CASE_SENSITIVE need
-                if not CASE_SENSITIVE:
-                    current_string = lower(current_string)
-                indexes = [m.start() for m in re.finditer(word, current_string)]
-                for index in indexes:
-                    # Check if this not a part of other word
-                    if index - 1 >= 0 \
-                       and not re.match(FIND_REGEX, current_string[index - 1]) \
-                       and index + len(word) < len(current_string) \
-                       and not re.match(FIND_REGEX, current_string[index + len(word)]):
-                        ed_self.attr(MARKERS_ADD, MARKER_CODE, index, y, len(word), color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, border_down=1, border_up=1, border_left=1, border_right=1)
-                        ed_self.set_caret(index, y, id=CARET_ADD)
-                    # Check if it is on start of line
-                    elif index - 1 < 0 \
-                       and index + len(word) < len(current_string) \
-                       and not re.match(FIND_REGEX, current_string[index + len(word)]):
-                        ed_self.attr(MARKERS_ADD, MARKER_CODE, index, y, len(word), color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, border_down=1, border_up=1, border_left=1, border_right=1)
-                        ed_self.set_caret(index, y, id=CARET_ADD)
+            for key in self.dictionary:
+                for key_tuple in self.dictionary[key]:
+                    print(caret, key_tuple)
+                    if  caret[1] >= key_tuple[0][1] \
+                    and caret[1] <= key_tuple[1][1] \
+                    and caret[0] <= key_tuple[1][0] \
+                    and caret[0] >= key_tuple[0][0]:
+                        our_key = key
+            # TODO: Scan all occurences
+            
             # Reset selection
-            self.selected = False
-            self.editing = True
+            #self.selected = False
+            #self.editing = True
             # Save 'green' position of first caret
             first_caret = ed_self.get_carets()[0]
             self.start = first_caret[1]
