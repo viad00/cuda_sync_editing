@@ -1,7 +1,8 @@
 #!/usr/env/bin python
 # Credits: https://github.com/kevinwuhoo/randomcolor-py [MIT License] [Copyright: Kevin Wu]
 # Version: 0.4.4.5
-# Changes: Renamed __init__.py to randomcolor.py and add this credits)
+# Changes: Renamed __init__.py to randomcolor.py and add this credits.
+# Used files: randomcolor/__init__.py -> randomcolor.py, randomcolor/lib/colormap.json -> lib/colormap.json.
 
 import os
 import colorsys
