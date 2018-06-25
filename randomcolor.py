@@ -1,4 +1,7 @@
 #!/usr/env/bin python
+# Credits: https://github.com/kevinwuhoo/randomcolor-py [MIT License] [Copyright: Kevin Wu]
+# Version: 0.4.4.5
+# Changes: Renamed __init__.py to randomcolor.py and add this credits)
 
 import os
 import colorsys
