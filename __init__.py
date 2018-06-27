@@ -35,6 +35,10 @@ class Command:
     selected = False 
     editing = False
     dictionary = {}
+    our_key = None
+    original = None
+    start_l = None
+    end_l = None
     
     
     def __init__(self):
@@ -59,12 +63,12 @@ class Command:
             msg_status('Sync Editing: Make selection first')
             return
         # Save cords
-        self.start, self.end = ed.get_sel_lines()
+        self.start_l, self.end_l = ed.get_sel_lines()
         self.selected = True
         # Break text selection
         ed.set_sel_rect(0,0,0,0)
         # Mark text that was selected
-        ed.set_prop(PROP_MARKED_RANGE, (self.start, self.end))
+        ed.set_prop(PROP_MARKED_RANGE, (self.start_l, self.end_l))
         # Load lexer config
         lexer = ed.get_prop(PROP_LEXER_FILE)
         if lexer:
@@ -81,7 +85,7 @@ class Command:
                     CASE_SENSITIVE = lexer_config.get('case_sens', True)
                     FIND_REGEX = lexer_config.get('id_regex', FIND_REGEX_DEFAULT)
         # Find all occurences of regex
-        for y in range(self.start, self.end+1):
+        for y in range(self.start_l, self.end_l+1):
             line = ed.get_text_line(y)
             for x in range(len(line)):
                 token = ed.get_token(TOKEN_AT_POS, x, y)
@@ -95,7 +99,23 @@ class Command:
                         self.dictionary[idd].append((token))
                 else:
                     self.dictionary[idd] = [(token)]
-        # Fix tokens with spaces at the start of the line (eg: ((0, 50), (16, 50), '        original', 'Id'))
+        # Fix tokens
+        self.fix_tokens()
+        # Mark all words that we can modify with pretty light color
+        if MARK_COLORS:
+            rand_color = randomcolor.RandomColor()
+            for key in self.dictionary:
+                color = html_color_to_int(rand_color.generate(luminosity='light')[0])
+                for key_tuple in self.dictionary[key]:
+                    ed.attr(MARKERS_ADD, tag = MARKER_CODE, \
+                    x = key_tuple[0][0], y = key_tuple[0][1], \
+                    len = key_tuple[1][0] - key_tuple[0][0], \
+                    color_bg=color, color_border=0xb000000, border_down=1)
+        msg_status('Sync Editing: Now, click on the word that you want to modify')
+        
+        
+    # Fix tokens with spaces at the start of the line (eg: ((0, 50), (16, 50), '        original', 'Id'))
+    def fix_tokens(self):
         new_replace = []
         for key in self.dictionary:
             for key_tuple in self.dictionary[key]:
@@ -116,23 +136,22 @@ class Command:
                 for i in range(len(self.dictionary[key])):
                     if self.dictionary[key][i] == neww[1]:
                         self.dictionary[key][i] = neww[0]
-        # Mark all words that we can modify with pretty light color
-        if MARK_COLORS:
-            rand_color = randomcolor.RandomColor()
-            for key in self.dictionary:
-                color = html_color_to_int(rand_color.generate(luminosity='light')[0])
-                for key_tuple in self.dictionary[key]:
-                    ed.attr(MARKERS_ADD, tag = MARKER_CODE, \
-                    x = key_tuple[0][0], y = key_tuple[0][1], \
-                    len = key_tuple[1][0] - key_tuple[0][0], \
-                    color_bg=color, color_border=0xb000000, border_down=1)
-        msg_status('Sync Editing: Now, click on the word that you want to modify')
-        
+    
     
     def reset(self):
         self.start = None
         self.end = None
         self.selected = False
+        self.editing = False
+        self.dictionary = {}
+        self.our_key = None
+        self.offset = None
+        self.start_l = None
+        self.end_l = None
+        # Restore original position
+        if self.original:
+            ed.set_caret(self.original[0], self.original[1], id=CARET_SET_ONE)
+            self.original = None
         ed.attr(MARKERS_DELETE_BY_TAG, tag=MARKER_CODE)
         ed.set_prop(PROP_MARKED_RANGE, (-1, -1))
         msg_status('Sync Editing: Selection reset')
@@ -144,7 +163,7 @@ class Command:
         if self.selected:
             ed_self.attr(MARKERS_DELETE_BY_TAG, tag=MARKER_CODE)
             # Find where we are
-            our_key = None
+            self.our_key = None
             caret = ed_self.get_carets()[0]
             for key in self.dictionary:
                 for key_tuple in self.dictionary[key]:
@@ -152,35 +171,37 @@ class Command:
                     and caret[1] <= key_tuple[1][1] \
                     and caret[0] <= key_tuple[1][0] \
                     and caret[0] >= key_tuple[0][0]:
-                        our_key = key
+                        self.our_key = key
+                        self.offset = caret[0] - key_tuple[0][0]
             # Reset if None
-            if our_key == None:
+            if not self.our_key:
                 msg_status('Sync Editing: Not a word! Select another')
                 return
+            # Save original position
+            self.original = (caret[0], caret[1])
             # Select editable word
-            for key_tuple in self.dictionary[our_key]:
+            for key_tuple in self.dictionary[self.our_key]:
                 ed_self.attr(MARKERS_ADD, tag = MARKER_CODE, \
                 x = key_tuple[0][0], y = key_tuple[0][1], \
                 len = key_tuple[1][0] - key_tuple[0][0], \
                 color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, \
                 border_left=1, border_right=1, border_down=1, border_up=1)
-            # TODO: Set carets to editable entities
-            
+                ed_self.set_caret(key_tuple[0][0] + self.offset, key_tuple[0][1], id=CARET_ADD)
             # Reset selection
-            #self.selected = False
-            #self.editing = True
+            self.selected = False
+            self.editing = True
             # Save 'green' position of first caret
             first_caret = ed_self.get_carets()[0]
             self.start = first_caret[1]
             self.end = first_caret[3]
             # support reverse selection
-            if self.start > self.end:
+            if self.start > self.end and not self.end == -1: # If not selected, cudatext returns -1
                 self.start, self.end = self.end, self.start
                 
         elif self.editing:
             self.editing = False
-            self.reset()
             first_caret = ed_self.get_carets()[0]
+            self.reset()
             ed_self.set_caret(*first_caret)
             
     
@@ -192,6 +213,38 @@ class Command:
                 self.editing = False
                 self.reset()
                 ed_self.set_caret(*first_caret)
+            # If amount of text changed, we have to redraw it.
+            self.redraw(ed_self)
+     
+     
+    # ProTip: This code is not working, because get_token returns random symbols on character delete or insertion
+    def redraw(self, ed_self):
+        self.our_key = ed_self.get_token(TOKEN_AT_POS, ed_self.get_carets()[0][0], ed_self.get_carets()[0][1])[2].strip()
+        self.dictionary = {}
+        # Debug
+        print('At position:', ed_self.get_carets()[0], 'get_token returns:', ed_self.get_token(TOKEN_AT_POS, ed_self.get_carets()[0][0], ed_self.get_carets()[0][1]))
+        for y in range(self.start_l, self.end_l+1):
+            line = ed.get_text_line(y)
+            for x in range(len(line)):
+                token = ed.get_token(TOKEN_AT_POS, x, y)
+                idd = token[2]
+                x += len(token[2])
+                idd = idd.strip()
+                if token[3] != 'Id':
+                    continue
+                if idd in self.dictionary:
+                    if token not in self.dictionary[idd]:
+                        self.dictionary[idd].append((token))
+                else:
+                    self.dictionary[idd] = [(token)]
+        self.fix_tokens()
+        ed_self.attr(MARKERS_DELETE_BY_TAG, tag=MARKER_CODE)
+        for key_tuple in self.dictionary[self.our_key]:
+                ed_self.attr(MARKERS_ADD, tag = MARKER_CODE, \
+                x = key_tuple[0][0], y = key_tuple[0][1], \
+                len = key_tuple[1][0] - key_tuple[0][0], \
+                color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, \
+                border_left=1, border_right=1, border_down=1, border_up=1)
                  
     
     def config(self):
