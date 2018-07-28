@@ -57,6 +57,8 @@ class Command:
     
     
     def toggle(self):
+        global FIND_REGEX
+        global CASE_SENSITIVE
         original = ed.get_text_sel()
         # Check if we have selection of text
         if not original:
@@ -209,7 +211,7 @@ class Command:
         if self.editing:
             # If we leaved original line, we have to break selection
             first_caret = ed_self.get_carets()[0]
-            if first_caret[1] < self.start or first_caret[3] > self.end:
+            if first_caret[1] > self.start or first_caret[3] > self.end or first_caret[1] < self.start:
                 self.editing = False
                 self.reset()
                 ed_self.set_caret(*first_caret)
@@ -219,9 +221,12 @@ class Command:
      
     # ProTip: This code is not working, because get_token returns random symbols on character delete or insertion
     def redraw(self, ed_self):
-        self.our_key = ed_self.get_token(TOKEN_AT_POS, ed_self.get_carets()[0][0], ed_self.get_carets()[0][1])[2].strip()
+        self.our_key = ed_self.get_text_substr(ed_self.get_carets()[0])
+        print(ed_self.get_carets()[0])
         self.dictionary = {}
-        # Debug
+        # Debug old
+        return
+        # Code
         print('At position:', ed_self.get_carets()[0], 'get_token returns:', ed_self.get_token(TOKEN_AT_POS, ed_self.get_carets()[0][0], ed_self.get_carets()[0][1]))
         for y in range(self.start_l, self.end_l+1):
             line = ed.get_text_line(y)
