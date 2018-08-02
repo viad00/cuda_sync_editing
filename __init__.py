@@ -219,14 +219,43 @@ class Command:
             self.redraw(ed_self)
      
      
-    # ProTip: This code is not working, because get_token returns random symbols on character delete or insertion
+    # Redraws Id's borders
     def redraw(self, ed_self):
-        self.our_key = ed_self.get_text_substr(ed_self.get_carets()[0])
-        print(ed_self.get_carets()[0])
+        # Simple workaround to prevent redraw while redraw
+        if not self.our_key: # Do not forget to set it back
+            return
+        # Find out what changed
+        old_key = self.our_key
+        self.our_key = None
+        first_y = ed_self.get_carets()[0][1]
+        first_x = ed_self.get_carets()[0][0]
+        first_y_line = ed_self.get_text_line(first_y)
+        start_pos = first_x
+        while re.match(FIND_REGEX, first_y_line[start_pos:]):
+            start_pos -= 1
+        start_pos += 1
+        new_key = re.match(FIND_REGEX, first_y_line[start_pos:]).group(0)
+        print(new_key)
+        # Rewrite dictionary with new values
+        old_key_dictionary = self.dictionary[old_key]
         self.dictionary = {}
+        pointers = []
+        for i in old_key_dictionary:
+            pointers.append(i[0])
+        print(pointers)
+        for pointer in pointers:
+            x = pointer[0]
+            y = pointer[1]
+            y_line = ed_self.get_text_line(y)
+            while re.match(FIND_REGEX, y_line[x:]):
+                x -= 1
+            x += 1
+            # TODO: Set new x
+            re.match(FIND_REGEX, y_line[x:])
+            
         # Debug old
         return
-        # Code
+        # ProTip: This code is not working, because get_token returns random symbols on character delete or insertion
         print('At position:', ed_self.get_carets()[0], 'get_token returns:', ed_self.get_token(TOKEN_AT_POS, ed_self.get_carets()[0][0], ed_self.get_carets()[0][1]))
         for y in range(self.start_l, self.end_l+1):
             line = ed.get_text_line(y)
