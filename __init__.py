@@ -86,6 +86,8 @@ class Command:
                         msg_status('Sync Editing: Lexer config load failed: ' + str(e))
                     CASE_SENSITIVE = lexer_config.get('case_sens', True)
                     FIND_REGEX = lexer_config.get('id_regex', FIND_REGEX_DEFAULT)
+        # Run lexer scan
+        ed.lexer_scan(0)
         # Find all occurences of regex
         for y in range(self.start_l, self.end_l+1):
             line = ed.get_text_line(y)
@@ -94,7 +96,8 @@ class Command:
                 idd = token[2]
                 x += len(token[2])
                 idd = idd.strip()
-                if token[3] != 'Id':
+                # Workaround for lexers that have either 'Id' and 'Identifier' in scan result
+                if token[3][:2] != 'Id':
                     continue
                 if idd in self.dictionary:
                     if token not in self.dictionary[idd]:
@@ -199,7 +202,6 @@ class Command:
             # support reverse selection
             if self.start > self.end and not self.end == -1: # If not selected, cudatext returns -1
                 self.start, self.end = self.end, self.start
-                
         elif self.editing:
             self.editing = False
             first_caret = ed_self.get_carets()[0]
@@ -231,18 +233,20 @@ class Command:
         first_x = ed_self.get_carets()[0][0]
         first_y_line = ed_self.get_text_line(first_y)
         start_pos = first_x
+        # Workaround for end of id case
+        if not re.match(FIND_REGEX, first_y_line[start_pos:]):
+            start_pos -= 1
         while re.match(FIND_REGEX, first_y_line[start_pos:]):
             start_pos -= 1
         start_pos += 1
         new_key = re.match(FIND_REGEX, first_y_line[start_pos:]).group(0)
-        print(new_key)
-        # Rewrite dictionary with new values
+        # Rebuild dictionary with new values
         old_key_dictionary = self.dictionary[old_key]
         self.dictionary = {}
+        self.dictionary[new_key] = []
         pointers = []
         for i in old_key_dictionary:
             pointers.append(i[0])
-        print(pointers)
         for pointer in pointers:
             x = pointer[0]
             y = pointer[1]
@@ -250,28 +254,10 @@ class Command:
             while re.match(FIND_REGEX, y_line[x:]):
                 x -= 1
             x += 1
-            # TODO: Set new x
-            re.match(FIND_REGEX, y_line[x:])
-            
-        # Debug old
-        return
-        # ProTip: This code is not working, because get_token returns random symbols on character delete or insertion
-        print('At position:', ed_self.get_carets()[0], 'get_token returns:', ed_self.get_token(TOKEN_AT_POS, ed_self.get_carets()[0][0], ed_self.get_carets()[0][1]))
-        for y in range(self.start_l, self.end_l+1):
-            line = ed.get_text_line(y)
-            for x in range(len(line)):
-                token = ed.get_token(TOKEN_AT_POS, x, y)
-                idd = token[2]
-                x += len(token[2])
-                idd = idd.strip()
-                if token[3] != 'Id':
-                    continue
-                if idd in self.dictionary:
-                    if token not in self.dictionary[idd]:
-                        self.dictionary[idd].append((token))
-                else:
-                    self.dictionary[idd] = [(token)]
-        self.fix_tokens()
+            self.dictionary[new_key].append(((x, y), (x+len(new_key), y), new_key, 'Id'))
+        # End rebuilding dictionary
+        self.our_key = new_key
+        # Paint new borders
         ed_self.attr(MARKERS_DELETE_BY_TAG, tag=MARKER_CODE)
         for key_tuple in self.dictionary[self.our_key]:
                 ed_self.attr(MARKERS_ADD, tag = MARKER_CODE, \
