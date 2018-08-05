@@ -11,16 +11,16 @@ events=on_click,on_caret
 
 [item2]
 section=commands
-caption=SyncEditing\Toggle
+caption=Sync Editing\Toggle
 method=toggle
 
 [item3]
 section=commands
-caption=SyncEditing\Cancel
+caption=Sync Editing\Cancel
 method=reset
 
 [item10]
 section=commands
-caption=SyncEditing\Config
+caption=Sync Editing\Config
 method=config
 menu=o

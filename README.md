@@ -4,9 +4,10 @@ Sync Editing feature to edit identical identifiers (inspired by [SynWrite](http:
 ### Showcase
 ![A plugin showcase gif](using.gif)
 
-### Using
-1. Select text that you want to edit
-2. Menu `Plugins/SyncEditing/Toggle` to enable Sync Editing mode
-3. Click on the identifier that you want to edit
-4. Edit it
-5. Click somewere else, leave line or click on menu `Plugins/SyncEditing/Reset` to leave Sync Editing mode
+### Usage
+1. Select block (one or several lines), containing some ID's (identifiers)
+2. Activate plugin by menu item: `Plugins / Sync Editing / Toggle`
+3. Selection is removed but plugin colorizes that block in different color
+4. Click on any ID in that block, which you want to edit
+5. Edit it (type new text)
+6. To cancel Sync Editing: click somewhere else; or leave ID's line (e.g. with arrow keys); or call menu item `Plugins / Sync Editing / Cancel`
