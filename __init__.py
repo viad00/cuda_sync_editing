@@ -97,6 +97,7 @@ class Command:
         # Exit if no id's (eg: comments and etc)
         if len(self.dictionary) == 0:
             self.reset()
+            self.saved_sel = (0,0)
             msg_status('Sync Editing: Cannot find IDs in selection')
             return
         # Fix tokens
