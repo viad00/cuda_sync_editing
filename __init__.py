@@ -23,6 +23,8 @@ MARKER_BG_COLOR = 0xFFAAAA
 MARKER_BORDER_COLOR = 0xFF0000
 # Mark selections with colors
 MARK_COLORS = True
+# Ask to confirm exit
+NO_ASK_TO_EXIT = False
 
 
 class Command:
@@ -43,10 +45,12 @@ class Command:
         global MARKER_BORDER_COLOR
         global MARKER_BG_COLOR
         global MARK_COLORS
+        global NO_ASK_TO_EXIT
         if get_opt('syncedit_color_marker_back'):
             MARKER_BG_COLOR = html_color_to_int(get_opt('syncedit_color_marker_back', lev=CONFIG_LEV_USER))
         if get_opt('syncedit_color_marker_border'):
-            MARKER_BG_COLOR = html_color_to_int(get_opt('syncedit_color_marker_border', lev=CONFIG_LEV_USER))
+            MARKER_BORDER_COLOR = html_color_to_int(get_opt('syncedit_color_marker_border', lev=CONFIG_LEV_USER))
+        NO_ASK_TO_EXIT = get_opt('syncedit_no_ask_to_exit', False, lev=CONFIG_LEV_USER)
         MARK_COLORS = get_opt('syncedit_color_mark_words', True, lev=CONFIG_LEV_USER)
     
     
@@ -90,6 +94,11 @@ class Command:
                     self.dictionary[idd].append(old_style_token)
             else:
                 self.dictionary[idd] = [(old_style_token)]
+        # Exit if no id's (eg: comments and etc)
+        if len(self.dictionary) == 0:
+            self.reset()
+            msg_status('Sync Editing: Cannot find IDs in selection')
+            return
         # Fix tokens
         self.fix_tokens()
         # Mark all words that we can modify with pretty light color
@@ -149,12 +158,13 @@ class Command:
             self.original = None
         ed.attr(MARKERS_DELETE_BY_TAG, tag=MARKER_CODE)
         ed.set_prop(PROP_MARKED_RANGE, (-1, -1))
-        msg_status('Sync Editing: Selection reset')
+        msg_status('Sync Editing: exited')
         
     
     def on_click(self, ed_self, state):
         global CASE_SENSITIVE
         global FIND_REGEX
+        global NO_ASK_TO_EXIT
         if self.selected:
             # Find where we are
             self.our_key = None
@@ -174,9 +184,17 @@ class Command:
                     self.want_exit = True
                     return
                 else:
-                    self.reset()
-                    self.saved_sel = (0,0)
-                    return
+                    if NO_ASK_TO_EXIT:
+                        self.reset()
+                        self.saved_sel = (0,0)
+                        return
+                    if msg_box('Are you want to leave Sync Edit mode?', MB_YESNO+MB_ICONINFO) == ID_YES:
+                        self.reset()
+                        self.saved_sel = (0,0)
+                        return
+                    else:
+                        self.want_exit = False
+                        return
             ed_self.attr(MARKERS_DELETE_BY_TAG, tag=MARKER_CODE)
             # Save original position
             self.original = (caret[0], caret[1])
@@ -210,7 +228,8 @@ class Command:
         if self.editing:
             # If we leaved original line, we have to break selection
             first_caret = ed_self.get_carets()[0]
-            if first_caret[1] > self.start or first_caret[3] > self.end or first_caret[1] < self.start:
+            x0, y0, x1, y1 = first_caret
+            if y0 > self.start or y1 > self.end or y0 < self.start:
                 self.editing = False
                 self.reset()
                 ed_self.set_caret(*first_caret)
@@ -224,20 +243,22 @@ class Command:
         # Simple workaround to prevent redraw while redraw
         if not self.our_key: # Do not forget to set it back
             return
-        # Find out what changed
+        # Find out what changed on the first caret (on others changes will be the same)
         old_key = self.our_key
         self.our_key = None
         first_y = ed_self.get_carets()[0][1]
         first_x = ed_self.get_carets()[0][0]
         first_y_line = ed_self.get_text_line(first_y)
         start_pos = first_x
+        # Compile regex
+        pattern = re.compile(FIND_REGEX)
         # Workaround for end of id case
-        if not re.match(FIND_REGEX, first_y_line[start_pos:]):
+        if not pattern.match(first_y_line[start_pos:]):
             start_pos -= 1
-        while re.match(FIND_REGEX, first_y_line[start_pos:]):
+        while pattern.match(first_y_line[start_pos:]):
             start_pos -= 1
         start_pos += 1
-        new_key = re.match(FIND_REGEX, first_y_line[start_pos:]).group(0)
+        new_key = pattern.match(first_y_line[start_pos:]).group(0)
         # Rebuild dictionary with new values
         old_key_dictionary = self.dictionary[old_key]
         self.dictionary = {}
@@ -249,7 +270,7 @@ class Command:
             x = pointer[0]
             y = pointer[1]
             y_line = ed_self.get_text_line(y)
-            while re.match(FIND_REGEX, y_line[x:]):
+            while pattern.match(y_line[x:]):
                 x -= 1
             x += 1
             self.dictionary[new_key].append(((x, y), (x+len(new_key), y), new_key, 'Id'))
@@ -269,12 +290,13 @@ class Command:
         msg_box(
 '''To configure Sync Editing, open lexer-specific config in CudaText (Options / Settings-more / Settings lexer specific) and write there options: case sensitive, regular expression for identifiers:
 
-  "case_sens": true,
-  "id_regex": "\w+",
+  "case_sens": true, // case sensitive search
+  "id_regex": "\w+", // regex to find id's
 
 Also you can write to CudaText's user.json these options:
 
-  "syncedit_color_marker_back": "#rrggbb",
-  "syncedit_color_marker_border": "#rrggbb",
-  "syncedit_color_mark_words": false, // default true
+  "syncedit_color_marker_back": "#rrggbb", // background color for id's
+  "syncedit_color_marker_border": "#rrggbb", // border color for id's
+  "syncedit_color_mark_words": true, // if false plugin does not marking all id's in selection mode
+  "syncedit_no_ask_to_exit": false // if true plugin exits editing mode without confirmation
 ''', MB_OK+MB_ICONINFO)
