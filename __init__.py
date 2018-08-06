@@ -61,6 +61,7 @@ class Command:
         global FIND_REGEX
         global CASE_SENSITIVE
         original = ed.get_text_sel()
+        app_proc(PROC_PROGRESSBAR, 3)
         # Check if we have selection of text
         if not original and self.saved_sel == (0,0):
             msg_status('Sync Editing: Make selection first')
@@ -77,6 +78,7 @@ class Command:
             # Break text selection
             ed.set_sel_rect(0,0,0,0)
         # Mark text that was selected
+        app_proc(PROC_PROGRESSBAR, 5)
         ed.set_prop(PROP_MARKED_RANGE, (self.start_l, self.end_l))
         # Load lexer config
         CASE_SENSITIVE = get_opt('case_sens', True, lev=CONFIG_LEV_LEX)
@@ -84,7 +86,9 @@ class Command:
         # Compile regex
         self.pattern = re.compile(FIND_REGEX)
         # Run lexer scan form start
+        app_proc(PROC_PROGRESSBAR, 10)
         ed.lexer_scan(self.start_l)
+        app_proc(PROC_PROGRESSBAR, 50)
         # Find all occurences of regex
         for token in ed.get_token(TOKEN_LIST_SUB, self.start_l, self.end_l):
             idd = token['str'].strip()
@@ -99,19 +103,21 @@ class Command:
                     self.dictionary[idd].append(old_style_token)
             else:
                 self.dictionary[idd] = [(old_style_token)]
+        # Fix tokens
+        app_proc(PROC_PROGRESSBAR, 70)
+        self.fix_tokens()
         # Exit if no id's (eg: comments and etc)
         if len(self.dictionary) == 0:
             self.reset()
             self.saved_sel = (0,0)
             msg_status('Sync Editing: Cannot find IDs in selection')
             return
+        # Exit if 1 occurence found (issue #44)
         elif len(self.dictionary) == 1:
             self.reset()
             self.saved_sel = (0,0)
             msg_status('Sync Editing: Only 1 ID in selection, exiting')
             return
-        # Fix tokens
-        self.fix_tokens()
         # Mark all words that we can modify with pretty light color
         if MARK_COLORS:
             rand_color = randomcolor.RandomColor()
@@ -122,13 +128,14 @@ class Command:
                     x = key_tuple[0][0], y = key_tuple[0][1], \
                     len = key_tuple[1][0] - key_tuple[0][0], \
                     color_bg=color, color_border=0xb000000, border_down=1)
+        app_proc(PROC_PROGRESSBAR, -1)
         if self.want_exit:
             msg_status('Sync Editing: Are want to exit? Click somewhere else to confirm exit or on marked word to continue editing.')
         else:
             msg_status('Sync Editing: Now, click on the word that you want to modify or somewhere else to exit')
         
         
-    # Fix tokens with spaces at the start of the line (eg: ((0, 50), (16, 50), '        original', 'Id'))
+    # Fix tokens with spaces at the start of the line (eg: ((0, 50), (16, 50), '        original', 'Id')) and remove if it has 1 occurence (issue #44 and #45)
     def fix_tokens(self):
         new_replace = []
         for key in self.dictionary:
@@ -145,11 +152,16 @@ class Command:
                 new_start = key_tuple[0][0] + offset
                 new_tuple = ((new_start, key_tuple[0][1]), key_tuple[1], new_token, key_tuple[3])
                 new_replace.append([new_tuple, key_tuple])
+        todelete = []
         for neww in new_replace:
             for key in self.dictionary:
                 for i in range(len(self.dictionary[key])):
                     if self.dictionary[key][i] == neww[1]:
                         self.dictionary[key][i] = neww[0]
+                if len(self.dictionary[key]) < 2:
+                    todelete.append(key)
+        for dell in todelete:
+            self.dictionary.pop(dell, None)
     
     
     def reset(self):
