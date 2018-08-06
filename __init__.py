@@ -47,10 +47,12 @@ class Command:
         global MARKER_BG_COLOR
         global MARK_COLORS
         global ASK_TO_EXIT
-        if get_opt('syncedit_color_marker_back'):
-            MARKER_BG_COLOR = html_color_to_int(get_opt('syncedit_color_marker_back', lev=CONFIG_LEV_USER))
-        if get_opt('syncedit_color_marker_border'):
-            MARKER_BORDER_COLOR = html_color_to_int(get_opt('syncedit_color_marker_border', lev=CONFIG_LEV_USER))
+        result = get_opt('syncedit_color_marker_back', lev=CONFIG_LEV_USER)
+        if result:
+            MARKER_BG_COLOR = html_color_to_int(result)
+        result = get_opt('syncedit_color_marker_border', lev=CONFIG_LEV_USER)
+        if result:
+            MARKER_BORDER_COLOR = html_color_to_int(result)
         ASK_TO_EXIT = get_opt('syncedit_ask_to_exit', True, lev=CONFIG_LEV_USER)
         MARK_COLORS = get_opt('syncedit_color_mark_words', True, lev=CONFIG_LEV_USER)
     
