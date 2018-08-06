@@ -62,6 +62,7 @@ class Command:
         global CASE_SENSITIVE
         original = ed.get_text_sel()
         app_proc(PROC_PROGRESSBAR, 3)
+        app_idle()
         # Check if we have selection of text
         if not original and self.saved_sel == (0,0):
             msg_status('Sync Editing: Make selection first')
@@ -79,6 +80,7 @@ class Command:
             ed.set_sel_rect(0,0,0,0)
         # Mark text that was selected
         app_proc(PROC_PROGRESSBAR, 5)
+        app_idle()
         ed.set_prop(PROP_MARKED_RANGE, (self.start_l, self.end_l))
         # Load lexer config
         CASE_SENSITIVE = get_opt('case_sens', True, lev=CONFIG_LEV_LEX)
@@ -87,8 +89,10 @@ class Command:
         self.pattern = re.compile(FIND_REGEX)
         # Run lexer scan form start
         app_proc(PROC_PROGRESSBAR, 10)
+        app_idle()
         ed.lexer_scan(self.start_l)
-        app_proc(PROC_PROGRESSBAR, 50)
+        app_proc(PROC_PROGRESSBAR, 40)
+        app_idle()
         # Find all occurences of regex
         for token in ed.get_token(TOKEN_LIST_SUB, self.start_l, self.end_l):
             idd = token['str'].strip()
@@ -104,20 +108,25 @@ class Command:
             else:
                 self.dictionary[idd] = [(old_style_token)]
         # Fix tokens
-        app_proc(PROC_PROGRESSBAR, 70)
+        app_proc(PROC_PROGRESSBAR, 60)
+        app_idle()
         self.fix_tokens()
         # Exit if no id's (eg: comments and etc)
         if len(self.dictionary) == 0:
             self.reset()
             self.saved_sel = (0,0)
             msg_status('Sync Editing: Cannot find IDs in selection')
+            app_proc(PROC_PROGRESSBAR, -1)
             return
         # Exit if 1 occurence found (issue #44)
         elif len(self.dictionary) == 1:
             self.reset()
             self.saved_sel = (0,0)
             msg_status('Sync Editing: Only 1 ID in selection, exiting')
+            app_proc(PROC_PROGRESSBAR, -1)
             return
+        app_proc(PROC_PROGRESSBAR, 90)
+        app_idle()
         # Mark all words that we can modify with pretty light color
         if MARK_COLORS:
             rand_color = randomcolor.RandomColor()
