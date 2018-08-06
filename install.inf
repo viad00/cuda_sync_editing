@@ -11,7 +11,7 @@ events=on_click,on_caret
 
 [item2]
 section=commands
-caption=Sync Editing\Toggle
+caption=Sync Editing\Activate
 method=toggle
 
 [item3]

@@ -24,7 +24,7 @@ MARKER_BORDER_COLOR = 0xFF0000
 # Mark selections with colors
 MARK_COLORS = True
 # Ask to confirm exit
-NO_ASK_TO_EXIT = False
+ASK_TO_EXIT = True
 
 
 class Command:
@@ -39,18 +39,19 @@ class Command:
     end_l = None
     want_exit = False
     saved_sel = (0,0)
+    pattern = None
     
     
     def __init__(self):
         global MARKER_BORDER_COLOR
         global MARKER_BG_COLOR
         global MARK_COLORS
-        global NO_ASK_TO_EXIT
+        global ASK_TO_EXIT
         if get_opt('syncedit_color_marker_back'):
             MARKER_BG_COLOR = html_color_to_int(get_opt('syncedit_color_marker_back', lev=CONFIG_LEV_USER))
         if get_opt('syncedit_color_marker_border'):
             MARKER_BORDER_COLOR = html_color_to_int(get_opt('syncedit_color_marker_border', lev=CONFIG_LEV_USER))
-        NO_ASK_TO_EXIT = get_opt('syncedit_no_ask_to_exit', False, lev=CONFIG_LEV_USER)
+        ASK_TO_EXIT = get_opt('syncedit_ask_to_exit', True, lev=CONFIG_LEV_USER)
         MARK_COLORS = get_opt('syncedit_color_mark_words', True, lev=CONFIG_LEV_USER)
     
     
@@ -78,8 +79,10 @@ class Command:
         # Load lexer config
         CASE_SENSITIVE = get_opt('case_sens', True, lev=CONFIG_LEV_LEX)
         FIND_REGEX = get_opt('id_regex', FIND_REGEX_DEFAULT, lev=CONFIG_LEV_LEX)
-        # Run lexer scan
-        ed.lexer_scan(0)
+        # Compile regex
+        self.pattern = re.compile(FIND_REGEX)
+        # Run lexer scan form start
+        ed.lexer_scan(self.start_l)
         # Find all occurences of regex
         for token in ed.get_token(TOKEN_LIST_SUB, self.start_l, self.end_l):
             idd = token['str'].strip()
@@ -99,6 +102,11 @@ class Command:
             self.reset()
             self.saved_sel = (0,0)
             msg_status('Sync Editing: Cannot find IDs in selection')
+            return
+        elif len(self.dictionary) == 1:
+            self.reset()
+            self.saved_sel = (0,0)
+            msg_status('Sync Editing: Only 1 ID in selection, exiting')
             return
         # Fix tokens
         self.fix_tokens()
@@ -153,6 +161,7 @@ class Command:
         self.start_l = None
         self.end_l = None
         self.want_exit = False
+        self.pattern = None
         # Restore original position
         if self.original:
             ed.set_caret(self.original[0], self.original[1], id=CARET_SET_ONE)
@@ -165,7 +174,7 @@ class Command:
     def on_click(self, ed_self, state):
         global CASE_SENSITIVE
         global FIND_REGEX
-        global NO_ASK_TO_EXIT
+        global ASK_TO_EXIT
         if self.selected:
             # Find where we are
             self.our_key = None
@@ -185,11 +194,11 @@ class Command:
                     self.want_exit = True
                     return
                 else:
-                    if NO_ASK_TO_EXIT:
+                    if not ASK_TO_EXIT:
                         self.reset()
                         self.saved_sel = (0,0)
                         return
-                    if msg_box('Are you want to leave Sync Edit mode?', MB_YESNO+MB_ICONINFO) == ID_YES:
+                    if msg_box('Do you want to cancel Sync Editing mode?', MB_YESNO+MB_ICONQUESTION) == ID_YES:
                         self.reset()
                         self.saved_sel = (0,0)
                         return
@@ -230,7 +239,7 @@ class Command:
             # If we leaved original line, we have to break selection
             first_caret = ed_self.get_carets()[0]
             x0, y0, x1, y1 = first_caret
-            if y0 > self.start or y1 > self.end or y0 < self.start:
+            if y0 != self.start:
                 self.editing = False
                 self.reset()
                 ed_self.set_caret(*first_caret)
@@ -242,7 +251,7 @@ class Command:
     # Redraws Id's borders
     def redraw(self, ed_self):
         # Simple workaround to prevent redraw while redraw
-        if not self.our_key: # Do not forget to set it back
+        if not self.our_key:
             return
         # Find out what changed on the first caret (on others changes will be the same)
         old_key = self.our_key
@@ -251,15 +260,13 @@ class Command:
         first_x = ed_self.get_carets()[0][0]
         first_y_line = ed_self.get_text_line(first_y)
         start_pos = first_x
-        # Compile regex
-        pattern = re.compile(FIND_REGEX)
         # Workaround for end of id case
-        if not pattern.match(first_y_line[start_pos:]):
+        if not self.pattern.match(first_y_line[start_pos:]):
             start_pos -= 1
-        while pattern.match(first_y_line[start_pos:]):
+        while self.pattern.match(first_y_line[start_pos:]):
             start_pos -= 1
         start_pos += 1
-        new_key = pattern.match(first_y_line[start_pos:]).group(0)
+        new_key = self.pattern.match(first_y_line[start_pos:]).group(0)
         # Rebuild dictionary with new values
         old_key_dictionary = self.dictionary[old_key]
         self.dictionary = {}
@@ -271,7 +278,7 @@ class Command:
             x = pointer[0]
             y = pointer[1]
             y_line = ed_self.get_text_line(y)
-            while pattern.match(y_line[x:]):
+            while self.pattern.match(y_line[x:]):
                 x -= 1
             x += 1
             self.dictionary[new_key].append(((x, y), (x+len(new_key), y), new_key, 'Id'))
@@ -298,6 +305,6 @@ Also you can write to CudaText's user.json these options:
 
   "syncedit_color_marker_back": "#rrggbb", // background color for id's
   "syncedit_color_marker_border": "#rrggbb", // border color for id's
-  "syncedit_color_mark_words": true, // if false plugin does not marking all id's in selection mode
-  "syncedit_no_ask_to_exit": false // if true plugin exits editing mode without confirmation
+  "syncedit_color_mark_words": true, // allows to colorize all id's in the selected block
+  "syncedit_ask_to_exit": false // if true plugin exits editing mode without confirmation
 ''', MB_OK+MB_ICONINFO)
