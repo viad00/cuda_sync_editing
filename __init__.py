@@ -61,8 +61,7 @@ class Command:
         global FIND_REGEX
         global CASE_SENSITIVE
         original = ed.get_text_sel()
-        app_proc(PROC_PROGRESSBAR, 3)
-        app_idle()
+        self.set_progress(3)
         # Check if we have selection of text
         if not original and self.saved_sel == (0,0):
             msg_status('Sync Editing: Make selection first')
@@ -79,8 +78,7 @@ class Command:
             # Break text selection
             ed.set_sel_rect(0,0,0,0)
         # Mark text that was selected
-        app_proc(PROC_PROGRESSBAR, 5)
-        app_idle()
+        self.set_progress(5)
         ed.set_prop(PROP_MARKED_RANGE, (self.start_l, self.end_l))
         # Load lexer config
         CASE_SENSITIVE = get_opt('case_sens', True, lev=CONFIG_LEV_LEX)
@@ -88,11 +86,9 @@ class Command:
         # Compile regex
         self.pattern = re.compile(FIND_REGEX)
         # Run lexer scan form start
-        app_proc(PROC_PROGRESSBAR, 10)
-        app_idle()
+        self.set_progress(10)
         ed.lexer_scan(self.start_l)
-        app_proc(PROC_PROGRESSBAR, 40)
-        app_idle()
+        self.set_progress(40)
         # Find all occurences of regex
         for token in ed.get_token(TOKEN_LIST_SUB, self.start_l, self.end_l):
             idd = token['str'].strip()
@@ -108,25 +104,23 @@ class Command:
             else:
                 self.dictionary[idd] = [(old_style_token)]
         # Fix tokens
-        app_proc(PROC_PROGRESSBAR, 60)
-        app_idle()
+        self.set_progress(60)
         self.fix_tokens()
         # Exit if no id's (eg: comments and etc)
         if len(self.dictionary) == 0:
             self.reset()
             self.saved_sel = (0,0)
             msg_status('Sync Editing: Cannot find IDs in selection')
-            app_proc(PROC_PROGRESSBAR, -1)
+            self.set_progress(-1)
             return
         # Exit if 1 occurence found (issue #44)
         elif len(self.dictionary) == 1:
             self.reset()
             self.saved_sel = (0,0)
             msg_status('Sync Editing: Only 1 ID in selection, exiting')
-            app_proc(PROC_PROGRESSBAR, -1)
+            self.set_progress(-1)
             return
-        app_proc(PROC_PROGRESSBAR, 90)
-        app_idle()
+        self.set_progress(90)
         # Mark all words that we can modify with pretty light color
         if MARK_COLORS:
             rand_color = randomcolor.RandomColor()
@@ -137,7 +131,7 @@ class Command:
                     x = key_tuple[0][0], y = key_tuple[0][1], \
                     len = key_tuple[1][0] - key_tuple[0][0], \
                     color_bg=color, color_border=0xb000000, border_down=1)
-        app_proc(PROC_PROGRESSBAR, -1)
+        self.set_progress(-1)
         if self.want_exit:
             msg_status('Sync Editing: Are want to exit? Click somewhere else to confirm exit or on marked word to continue editing.')
         else:
@@ -171,6 +165,12 @@ class Command:
                     todelete.append(key)
         for dell in todelete:
             self.dictionary.pop(dell, None)
+    
+    
+    # Set progress (issue #46)
+    def set_progress(self, prg):
+        app_proc(PROC_PROGRESSBAR, prg)
+        app_idle()
     
     
     def reset(self):
