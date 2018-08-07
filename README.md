@@ -1,4 +1,4 @@
-#  Cuda Sync Editing
+#  CudaText Sync Editing plugin
 Sync Editing feature to edit identical identifiers (inspired by [SynWrite](http://uvviewsoft.com/synwrite/))
 
 ### Showcase
