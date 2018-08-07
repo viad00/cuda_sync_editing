@@ -11,21 +11,13 @@ from cudax_lib import html_color_to_int, get_opt, set_opt, CONFIG_LEV_USER, CONF
 # Uniq value for all marker plugins
 MARKER_CODE = 1002 
 
-# Check if you need case-sensitive search
 CASE_SENSITIVE = True
-# Regex for finding words
-FIND_REGEX_DEFAULT = r'\w+'
+FIND_REGEX_DEFAULT = r'[a-z_]\w*'
 FIND_REGEX = FIND_REGEX_DEFAULT
-# Code for markers
-# BG color for markers
 MARKER_BG_COLOR = 0xFFAAAA
-# Font color for markers
 MARKER_F_COLOR  = 0x005555
-# Border color for markers
 MARKER_BORDER_COLOR = 0xFF0000
-# Mark selections with colors
 MARK_COLORS = True
-# Ask to confirm exit
 ASK_TO_EXIT = True
 
 
