@@ -60,12 +60,15 @@ class Command:
     def toggle(self):
         global FIND_REGEX
         global CASE_SENSITIVE
+        if len(ed.get_carets())!=1:
+            msg_status('Sync Editing: need single caret')
+            return
         original = ed.get_text_sel()
-        self.set_progress(3)
         # Check if we have selection of text
         if not original and self.saved_sel == (0,0):
             msg_status('Sync Editing: Make selection first')
             return
+        self.set_progress(3)
         if self.saved_sel != (0,0):
             self.start_l, self.end_l = self.saved_sel
             self.selected = True
