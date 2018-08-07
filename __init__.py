@@ -66,7 +66,7 @@ class Command:
         MARKER_BG_COLOR = theme_color('SectionBG4', False)
         MARKER_BORDER_COLOR = MARKER_F_COLOR
         ASK_TO_EXIT = get_opt('syncedit_ask_to_exit', True, lev=CONFIG_LEV_USER)
-        MARK_COLORS = get_opt('syncedit_color_mark_words', True, lev=CONFIG_LEV_USER)
+        MARK_COLORS = get_opt('syncedit_mark_words', True, lev=CONFIG_LEV_USER)
     
     
     def toggle(self):
@@ -362,6 +362,6 @@ class Command:
 
 Also you can write to CudaText's user.json these options:
 
-  "syncedit_color_mark_words": true, // allows fancy colorizing of id's in selection
-  "syncedit_ask_to_exit": true, // show confirmation before auto-cancelling sync editing
+  "syncedit_mark_words": true, // allows fancy colorizing of words in selection
+  "syncedit_ask_to_exit": true, // show confirmation before auto-cancelling
 ''', MB_OK+MB_ICONINFO)
