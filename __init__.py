@@ -31,7 +31,12 @@ def theme_color(name, is_font):
         if i['name']==name:
             return i['color_font' if is_font else 'color_back']
     return 0x808080
-        
+
+def token_style_ok(s):
+    ''' Good is 'Id', 'Id Prop', 'Identifier', bad is 'Id Keyword' '''
+    s = s.lower()
+    return s.startswith('id') and not 'keyword' in s
+         
 
 class Command:
     start = None
@@ -105,12 +110,9 @@ class Command:
             self.set_progress(-1)
             return
         for token in tokenlist:
+            if not token_style_ok(token['style']):
+                continue
             idd = token['str'].strip()
-            # Workaround for lexers that have either 'Id' and 'Identifier' in scan result
-            if token['style'][:2] != 'Id':
-                continue
-            if len(token['style']) > 2 and token['style'][2] == ' ':
-                continue
             old_style_token = ((token['x1'], token['y1']), (token['x2'], token['y2']), token['str'], token['style'])
             if idd in self.dictionary:
                 if old_style_token not in self.dictionary[idd]:
