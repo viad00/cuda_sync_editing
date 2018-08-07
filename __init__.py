@@ -12,7 +12,7 @@ from cudax_lib import html_color_to_int, get_opt, set_opt, CONFIG_LEV_USER, CONF
 MARKER_CODE = 1002 
 
 CASE_SENSITIVE = True
-FIND_REGEX_DEFAULT = r'[a-z_]\w*'
+FIND_REGEX_DEFAULT = r'[a-zA-Z_]\w*'
 FIND_REGEX = FIND_REGEX_DEFAULT
 MARKER_BG_COLOR = 0xFFAAAA
 MARKER_F_COLOR  = 0x005555
