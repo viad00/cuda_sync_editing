@@ -165,6 +165,10 @@ class RandomColor(object):
     def random_within(self, r):
         return self.random.randint(int(r[0]), int(r[1]))
 
+    def invert_color(self, color_to_convert): 
+        table = str.maketrans('0123456789abcdef', 'fedcba9876543210')
+        return '#' + color_to_convert[1:].lower().translate(table).upper()
+
     @classmethod
     def hsv_to_rgb(cls, hsv):
         h, s, v = hsv
