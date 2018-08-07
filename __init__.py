@@ -33,6 +33,14 @@ def invert_color(c):
     table = str.maketrans('0123456789abcdef', 'fedcba9876543210')
     return '#' + c[1:].lower().translate(table).upper()
 
+_d = app_proc(PROC_THEME_SYNTAX_DATA_GET, '')
+def theme_color(name, is_font):
+    for i in _d:
+        if i['name']==name:
+            return i['color_font' if is_font else 'color_back']
+    return 0x808080
+        
+
 class Command:
     start = None
     end = None
@@ -49,20 +57,14 @@ class Command:
     
     
     def __init__(self):
-        global MARKER_BORDER_COLOR
-        global MARKER_BG_COLOR
         global MARKER_F_COLOR
+        global MARKER_BG_COLOR
+        global MARKER_BORDER_COLOR
         global MARK_COLORS
         global ASK_TO_EXIT
-        result = get_opt('syncedit_color_marker_back', lev=CONFIG_LEV_USER)
-        if result:
-            MARKER_BG_COLOR = html_color_to_int(result)
-        result = get_opt('syncedit_color_marker_font', lev=CONFIG_LEV_USER)
-        if result:
-            MARKER_F_COLOR = html_color_to_int(result)
-        result = get_opt('syncedit_color_marker_border', lev=CONFIG_LEV_USER)
-        if result:
-            MARKER_BORDER_COLOR = html_color_to_int(result)
+        MARKER_F_COLOR = theme_color('Id', True)
+        MARKER_BG_COLOR = theme_color('SectionBG4', False)
+        MARKER_BORDER_COLOR = MARKER_F_COLOR
         ASK_TO_EXIT = get_opt('syncedit_ask_to_exit', True, lev=CONFIG_LEV_USER)
         MARK_COLORS = get_opt('syncedit_color_mark_words', True, lev=CONFIG_LEV_USER)
     
@@ -258,8 +260,14 @@ class Command:
                 ed_self.attr(MARKERS_ADD, tag = MARKER_CODE, \
                 x = key_tuple[0][0], y = key_tuple[0][1], \
                 len = key_tuple[1][0] - key_tuple[0][0], \
-                color_font=MARKER_F_COLOR,color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, \
-                border_left=1, border_right=1, border_down=1, border_up=1)
+                color_font=MARKER_F_COLOR, \
+                color_bg=MARKER_BG_COLOR, \
+                color_border=MARKER_BORDER_COLOR, \
+                border_left=1, \
+                border_right=1, \
+                border_down=1, \
+                border_up=1 \
+                )
                 ed_self.set_caret(key_tuple[0][0] + self.offset, key_tuple[0][1], id=CARET_ADD)
             # Reset selection
             self.selected = False
@@ -335,8 +343,14 @@ class Command:
                 ed_self.attr(MARKERS_ADD, tag = MARKER_CODE, \
                 x = key_tuple[0][0], y = key_tuple[0][1], \
                 len = key_tuple[1][0] - key_tuple[0][0], \
-                color_font=MARKER_F_COLOR,color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, \
-                border_left=1, border_right=1, border_down=1, border_up=1)
+                color_font=MARKER_F_COLOR, \
+                color_bg=MARKER_BG_COLOR, \
+                color_border=MARKER_BORDER_COLOR, \
+                border_left=1, \
+                border_right=1, \
+                border_down=1, \
+                border_up=1 \
+                )
                 
     
     def config(self):
@@ -348,9 +362,6 @@ class Command:
 
 Also you can write to CudaText's user.json these options:
 
-  "syncedit_color_marker_back": "#rrggbb", // background color of id's
-  "syncedit_color_marker_font": "#rrggbb", // font color of id's
-  "syncedit_color_marker_border": "#rrggbb", // border color of id's
   "syncedit_color_mark_words": true, // allows fancy colorizing of id's in selection
   "syncedit_ask_to_exit": true, // show confirmation before auto-cancelling sync editing
 ''', MB_OK+MB_ICONINFO)
