@@ -29,9 +29,9 @@ MARK_COLORS = True
 ASK_TO_EXIT = True
 
 
-def invert_color(color_to_convert): 
+def invert_color(c): 
     table = str.maketrans('0123456789abcdef', 'fedcba9876543210')
-    return '#' + color_to_convert[1:].lower().translate(table).upper()
+    return '#' + c[1:].lower().translate(table).upper()
 
 class Command:
     start = None
