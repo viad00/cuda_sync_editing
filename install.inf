@@ -4,6 +4,7 @@ desc=Sync Editing like in SynWrite editor. You select block, and then you can re
 type=cudatext-plugin
 subdir=cuda_sync_editing
 homepage=https://github.com/viad00/cuda_sync_editing
+api=1.0.249
 
 [item1]
 section=events
