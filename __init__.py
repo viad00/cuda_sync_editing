@@ -61,7 +61,7 @@ class Command:
         global FIND_REGEX
         global CASE_SENSITIVE
         if len(ed.get_carets())!=1:
-            msg_status('Sync Editing: need single caret')
+            msg_status('Sync Editing: Need single caret')
             return
         original = ed.get_text_sel()
         # Check if we have selection of text
@@ -93,7 +93,14 @@ class Command:
         ed.lexer_scan(self.start_l)
         self.set_progress(40)
         # Find all occurences of regex
-        for token in ed.get_token(TOKEN_LIST_SUB, self.start_l, self.end_l):
+        tokenlist = ed.get_token(TOKEN_LIST_SUB, self.start_l, self.end_l)
+        if not tokenlist:
+            self.reset()
+            self.saved_sel = (0,0)
+            msg_status('Sync Editing: Cannot find IDs in selection')
+            self.set_progress(-1)
+            return
+        for token in tokenlist:
             idd = token['str'].strip()
             # Workaround for lexers that have either 'Id' and 'Identifier' in scan result
             if token['style'][:2] != 'Id':
