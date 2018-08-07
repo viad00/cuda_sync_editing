@@ -2,7 +2,7 @@
 Sync Editing feature to edit identical identifiers (inspired by [SynWrite](http://uvviewsoft.com/synwrite/))
 
 ### Showcase
-![A plugin showcase gif](using.gif)
+![A plugin showcase gif](readme/using.gif)
 
 ### Usage
 1. Select block (one or several lines), containing some ID's (identifiers)
