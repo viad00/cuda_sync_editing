@@ -143,9 +143,9 @@ class Command:
                     color_bg=color, color_border=0xb000000, border_down=1)
         self.set_progress(-1)
         if self.want_exit:
-            msg_status('Sync Editing: Are want to exit? Click somewhere else to confirm exit or on marked word to continue editing.')
+            msg_status('Sync Editing: Cancel? Click somewhere else to cancel, or on ID to continue.')
         else:
-            msg_status('Sync Editing: Now, click on the word that you want to modify or somewhere else to exit')
+            msg_status('Sync Editing: Click on ID to edit it, or somewhere else to cancel')
         
         
     # Fix tokens with spaces at the start of the line (eg: ((0, 50), (16, 50), '        original', 'Id')) and remove if it has 1 occurence (issue #44 and #45)
