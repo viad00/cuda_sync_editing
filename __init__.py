@@ -19,13 +19,14 @@ FIND_REGEX = FIND_REGEX_DEFAULT
 # Code for markers
 # BG color for markers
 MARKER_BG_COLOR = 0xFFAAAA
+# Font color for markers
+MARKER_F_COLOR  = 0x005555
 # Border color for markers
 MARKER_BORDER_COLOR = 0xFF0000
 # Mark selections with colors
 MARK_COLORS = True
 # Ask to confirm exit
 ASK_TO_EXIT = True
-
 
 class Command:
     start = None
@@ -125,12 +126,14 @@ class Command:
         if MARK_COLORS:
             rand_color = randomcolor.RandomColor()
             for key in self.dictionary:
-                color = html_color_to_int(rand_color.generate(luminosity='light')[0])
+                htmlcolor = rand_color.generate(luminosity='light')[0]
+                color  = html_color_to_int(htmlcolor)
+                colorf = html_color_to_int(rand_color.invert_color(htmlcolor))
                 for key_tuple in self.dictionary[key]:
                     ed.attr(MARKERS_ADD, tag = MARKER_CODE, \
                     x = key_tuple[0][0], y = key_tuple[0][1], \
                     len = key_tuple[1][0] - key_tuple[0][0], \
-                    color_bg=color, color_border=0xb000000, border_down=1)
+                    color_font=colorf, color_bg=color, color_border=0xb000000, border_down=1)
         self.set_progress(-1)
         if self.want_exit:
             msg_status('Sync Editing: Are want to exit? Click somewhere else to confirm exit or on marked word to continue editing.')
@@ -236,7 +239,7 @@ class Command:
                 ed_self.attr(MARKERS_ADD, tag = MARKER_CODE, \
                 x = key_tuple[0][0], y = key_tuple[0][1], \
                 len = key_tuple[1][0] - key_tuple[0][0], \
-                color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, \
+                color_font=MARKER_F_COLOR,color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, \
                 border_left=1, border_right=1, border_down=1, border_up=1)
                 ed_self.set_caret(key_tuple[0][0] + self.offset, key_tuple[0][1], id=CARET_ADD)
             # Reset selection
@@ -313,7 +316,7 @@ class Command:
                 ed_self.attr(MARKERS_ADD, tag = MARKER_CODE, \
                 x = key_tuple[0][0], y = key_tuple[0][1], \
                 len = key_tuple[1][0] - key_tuple[0][0], \
-                color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, \
+                color_font=MARKER_F_COLOR,color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, \
                 border_left=1, border_right=1, border_down=1, border_up=1)
                 
     
