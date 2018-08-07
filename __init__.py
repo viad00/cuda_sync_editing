@@ -127,7 +127,7 @@ class Command:
         elif len(self.dictionary) == 1:
             self.reset()
             self.saved_sel = (0,0)
-            msg_status('Sync Editing: Only 1 ID in selection, exiting')
+            msg_status('Sync Editing: Need several IDs in selection')
             self.set_progress(-1)
             return
         self.set_progress(90)
@@ -201,7 +201,7 @@ class Command:
             self.original = None
         ed.attr(MARKERS_DELETE_BY_TAG, tag=MARKER_CODE)
         ed.set_prop(PROP_MARKED_RANGE, (-1, -1))
-        msg_status('Sync Editing: exited')
+        msg_status('Sync Editing: Cancelled')
         
     
     def on_click(self, ed_self, state):
@@ -223,7 +223,7 @@ class Command:
             # Reset if None
             if not self.our_key:
                 if not self.want_exit:
-                    msg_status('Sync Editing: Not a word! Select another or click somewhere else again')
+                    msg_status('Sync Editing: Not a word! Click another, or click somewhere else again')
                     self.want_exit = True
                     return
                 else:
