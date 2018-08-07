@@ -349,6 +349,7 @@ class Command:
 Also you can write to CudaText's user.json these options:
 
   "syncedit_color_marker_back": "#rrggbb", // background color of id's
+  "syncedit_color_marker_font": "#rrggbb", // font color of id's
   "syncedit_color_marker_border": "#rrggbb", // border color of id's
   "syncedit_color_mark_words": true, // allows fancy colorizing of id's in selection
   "syncedit_ask_to_exit": true, // show confirmation before auto-cancelling sync editing
