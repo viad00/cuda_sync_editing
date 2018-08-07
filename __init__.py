@@ -19,6 +19,8 @@ FIND_REGEX = FIND_REGEX_DEFAULT
 # Code for markers
 # BG color for markers
 MARKER_BG_COLOR = 0xFFAAAA
+# Font color for markers
+MARKER_F_COLOR  = 0x005555
 # Border color for markers
 MARKER_BORDER_COLOR = 0xFF0000
 # Mark selections with colors
@@ -26,6 +28,10 @@ MARK_COLORS = True
 # Ask to confirm exit
 ASK_TO_EXIT = True
 
+
+def invert_color(color_to_convert): 
+    table = str.maketrans('0123456789abcdef', 'fedcba9876543210')
+    return '#' + color_to_convert[1:].lower().translate(table).upper()
 
 class Command:
     start = None
@@ -45,11 +51,15 @@ class Command:
     def __init__(self):
         global MARKER_BORDER_COLOR
         global MARKER_BG_COLOR
+        global MARKER_F_COLOR
         global MARK_COLORS
         global ASK_TO_EXIT
         result = get_opt('syncedit_color_marker_back', lev=CONFIG_LEV_USER)
         if result:
             MARKER_BG_COLOR = html_color_to_int(result)
+        result = get_opt('syncedit_color_marker_font', lev=CONFIG_LEV_USER)
+        if result:
+            MARKER_F_COLOR = html_color_to_int(result)
         result = get_opt('syncedit_color_marker_border', lev=CONFIG_LEV_USER)
         if result:
             MARKER_BORDER_COLOR = html_color_to_int(result)
@@ -135,12 +145,14 @@ class Command:
         if MARK_COLORS:
             rand_color = randomcolor.RandomColor()
             for key in self.dictionary:
-                color = html_color_to_int(rand_color.generate(luminosity='light')[0])
+                htmlcolor = rand_color.generate(luminosity='light')[0]
+                color  = html_color_to_int(htmlcolor)
+                colorf = html_color_to_int(invert_color(htmlcolor))
                 for key_tuple in self.dictionary[key]:
                     ed.attr(MARKERS_ADD, tag = MARKER_CODE, \
                     x = key_tuple[0][0], y = key_tuple[0][1], \
                     len = key_tuple[1][0] - key_tuple[0][0], \
-                    color_bg=color, color_border=0xb000000, border_down=1)
+                    color_font=colorf, color_bg=color, color_border=0xb000000, border_down=1)
         self.set_progress(-1)
         if self.want_exit:
             msg_status('Sync Editing: Cancel? Click somewhere else to cancel, or on ID to continue.')
@@ -246,7 +258,7 @@ class Command:
                 ed_self.attr(MARKERS_ADD, tag = MARKER_CODE, \
                 x = key_tuple[0][0], y = key_tuple[0][1], \
                 len = key_tuple[1][0] - key_tuple[0][0], \
-                color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, \
+                color_font=MARKER_F_COLOR,color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, \
                 border_left=1, border_right=1, border_down=1, border_up=1)
                 ed_self.set_caret(key_tuple[0][0] + self.offset, key_tuple[0][1], id=CARET_ADD)
             # Reset selection
@@ -323,7 +335,7 @@ class Command:
                 ed_self.attr(MARKERS_ADD, tag = MARKER_CODE, \
                 x = key_tuple[0][0], y = key_tuple[0][1], \
                 len = key_tuple[1][0] - key_tuple[0][0], \
-                color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, \
+                color_font=MARKER_F_COLOR,color_bg=MARKER_BG_COLOR, color_border=MARKER_BORDER_COLOR, \
                 border_left=1, border_right=1, border_down=1, border_up=1)
                 
     
