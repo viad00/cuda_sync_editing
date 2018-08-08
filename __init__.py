@@ -28,11 +28,6 @@ MARK_COLORS = True
 # Ask to confirm exit
 ASK_TO_EXIT = True
 
-
-def invert_color(color_to_convert): 
-    table = str.maketrans('0123456789abcdef', 'fedcba9876543210')
-    return '#' + color_to_convert[1:].lower().translate(table).upper()
-
 class Command:
     start = None
     end = None
@@ -135,14 +130,12 @@ class Command:
         if MARK_COLORS:
             rand_color = randomcolor.RandomColor()
             for key in self.dictionary:
-                htmlcolor = rand_color.generate(luminosity='light')[0]
-                color  = html_color_to_int(htmlcolor)
-                colorf = html_color_to_int(invert_color(htmlcolor))
+                color  = html_color_to_int(rand_color.generate(luminosity='light')[0])
                 for key_tuple in self.dictionary[key]:
                     ed.attr(MARKERS_ADD, tag = MARKER_CODE, \
                     x = key_tuple[0][0], y = key_tuple[0][1], \
                     len = key_tuple[1][0] - key_tuple[0][0], \
-                    color_font=colorf, color_bg=color, color_border=0xb000000, border_down=1)
+                    color_font=0xb000000, color_bg=color, color_border=0xb000000, border_down=1)
         self.set_progress(-1)
         if self.want_exit:
             msg_status('Sync Editing: Are want to exit? Click somewhere else to confirm exit or on marked word to continue editing.')
