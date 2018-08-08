@@ -92,6 +92,7 @@ class Command:
         # Mark text that was selected
         self.set_progress(5)
         ed.set_prop(PROP_MARKED_RANGE, (self.start_l, self.end_l))
+        ed.set_prop(PROP_TAG, 'sync_edit:1')
         # Load lexer config
         CASE_SENSITIVE = get_opt('case_sens', True, lev=CONFIG_LEV_LEX)
         FIND_REGEX = get_opt('id_regex', FIND_REGEX_DEFAULT, lev=CONFIG_LEV_LEX)
@@ -113,6 +114,8 @@ class Command:
             if not token_style_ok(token['style']):
                 continue
             idd = token['str'].strip()
+            if not CASE_SENSITIVE:
+                idd = idd.lower()
             old_style_token = ((token['x1'], token['y1']), (token['x2'], token['y2']), token['str'], token['style'])
             if idd in self.dictionary:
                 if old_style_token not in self.dictionary[idd]:
@@ -130,7 +133,7 @@ class Command:
             self.set_progress(-1)
             return
         # Exit if 1 occurence found (issue #44)
-        elif len(self.dictionary) == 1:
+        elif len(self.dictionary) == 1 and len(self.dictionary[list(self.dictionary.keys())[0]]) == 1:
             self.reset()
             self.saved_sel = (0,0)
             msg_status('Sync Editing: Need several IDs in selection')
@@ -209,6 +212,8 @@ class Command:
             self.original = None
         ed.attr(MARKERS_DELETE_BY_TAG, tag=MARKER_CODE)
         ed.set_prop(PROP_MARKED_RANGE, (-1, -1))
+        self.set_progress(-1)
+        ed.set_prop(PROP_TAG, 'sync_edit:0')
         msg_status('Sync Editing: Cancelled')
         
     
@@ -216,6 +221,8 @@ class Command:
         global CASE_SENSITIVE
         global FIND_REGEX
         global ASK_TO_EXIT
+        if ed_self.get_prop(PROP_TAG, 'sync_edit:0') != '1':
+            return
         if self.selected:
             # Find where we are
             self.our_key = None
@@ -282,6 +289,8 @@ class Command:
             
     
     def on_caret(self, ed_self):
+        if ed_self.get_prop(PROP_TAG, 'sync_edit:0') != '1':
+            return
         if self.editing:
             # If we leaved original line, we have to break selection
             first_caret = ed_self.get_carets()[0]
@@ -314,6 +323,8 @@ class Command:
             start_pos -= 1
         start_pos += 1
         new_key = self.pattern.match(first_y_line[start_pos:]).group(0)
+        if not CASE_SENSITIVE:
+            new_key = new_key.lower()
         # Rebuild dictionary with new values
         old_key_dictionary = self.dictionary[old_key]
         self.dictionary = {}
