@@ -20,11 +20,6 @@ MARKER_BORDER_COLOR = 0xFF0000
 MARK_COLORS = True
 ASK_TO_EXIT = True
 
-
-def invert_color(c): 
-    table = str.maketrans('0123456789abcdef', 'fedcba9876543210')
-    return '#' + c[1:].lower().translate(table).upper()
-
 _d = app_proc(PROC_THEME_SYNTAX_DATA_GET, '')
 def theme_color(name, is_font):
     for i in _d:
@@ -144,14 +139,12 @@ class Command:
         if MARK_COLORS:
             rand_color = randomcolor.RandomColor()
             for key in self.dictionary:
-                htmlcolor = rand_color.generate(luminosity='light')[0]
-                color  = html_color_to_int(htmlcolor)
-                colorf = html_color_to_int(invert_color(htmlcolor))
+                color  = html_color_to_int(rand_color.generate(luminosity='light')[0])
                 for key_tuple in self.dictionary[key]:
                     ed.attr(MARKERS_ADD, tag = MARKER_CODE, \
                     x = key_tuple[0][0], y = key_tuple[0][1], \
                     len = key_tuple[1][0] - key_tuple[0][0], \
-                    color_font=colorf, color_bg=color, color_border=0xb000000, border_down=1)
+                    color_font=0xb000000, color_bg=color, color_border=0xb000000, border_down=1)
         self.set_progress(-1)
         if self.want_exit:
             msg_status('Sync Editing: Cancel? Click somewhere else to cancel, or on ID to continue.')
