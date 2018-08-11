@@ -13,8 +13,8 @@ Plugin has several options, which are listed/described in the help message-box.
 Call menu item "Options / Settings-plugins / Sync Editing / Config".
 Options "case sensitive", "reg.ex. for identifiers" and few UI options.
 
-Plugin ignores IDs, which are located in syntax constants/comments.
-To detect constants and comments, plugin uses lexer API, it wants words
+Plugin ignores IDs, which are located in syntax comments/strings.
+To detect comments/strings, plugin uses lexer API, it wants words
 with lexer style, beginning with "Id", but not containing "keyword".
 
 Author: Vladislav Utkin (viad00 at GitHub)
