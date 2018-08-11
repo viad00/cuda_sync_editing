@@ -315,6 +315,11 @@ class Command:
         while self.pattern.match(first_y_line[start_pos:]):
             start_pos -= 1
         start_pos += 1
+        # Workaround for empty id (eg. when it was deleted) #62
+        if not self.pattern.match(first_y_line[start_pos:]):
+            self.our_key = old_key
+            ed_self.attr(MARKERS_DELETE_BY_TAG, tag=MARKER_CODE)
+            return
         new_key = self.pattern.match(first_y_line[start_pos:]).group(0)
         if not CASE_SENSITIVE:
             new_key = new_key.lower()
