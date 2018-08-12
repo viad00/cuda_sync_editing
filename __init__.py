@@ -14,6 +14,12 @@ MARKER_CODE = 1002
 CASE_SENSITIVE = True
 FIND_REGEX_DEFAULT = r'[a-zA-Z_]\w*'
 FIND_REGEX = FIND_REGEX_DEFAULT
+
+STYLES_DEFAULT = r'(?i)id[\w\s]*'
+STYLES_NO_DEFAULT = '(?i).*keyword.*'
+STYLES = STYLES_DEFAULT
+STYLES_NO = STYLES_NO_DEFAULT
+
 MARKER_BG_COLOR = 0xFFAAAA
 MARKER_F_COLOR  = 0x005555
 MARKER_BORDER_COLOR = 0xFF0000
@@ -26,12 +32,6 @@ def theme_color(name, is_font):
         if i['name']==name:
             return i['color_font' if is_font else 'color_back']
     return 0x808080
-
-def token_style_ok(s):
-    ''' Good is 'Id', 'Id Prop', 'Identifier', bad is 'Id Keyword' '''
-    s = s.lower()
-    return s.startswith('id') and not 'keyword' in s
-         
 
 class Command:
     start = None
@@ -46,6 +46,8 @@ class Command:
     want_exit = False
     saved_sel = (0,0)
     pattern = None
+    pattern_styles = None
+    pattern_styles_no = None
     
     
     def __init__(self):
@@ -61,6 +63,12 @@ class Command:
         MARK_COLORS = get_opt('syncedit_mark_words', True, lev=CONFIG_LEV_USER)
     
     
+    def token_style_ok(self, s):
+        good = self.pattern_styles.fullmatch(s)
+        bad = self.pattern_styles_no.fullmatch(s)
+        return good and not bad
+         
+
     def toggle(self):
         global FIND_REGEX
         global CASE_SENSITIVE
@@ -91,8 +99,12 @@ class Command:
         # Load lexer config
         CASE_SENSITIVE = get_opt('case_sens', True, lev=CONFIG_LEV_LEX)
         FIND_REGEX = get_opt('id_regex', FIND_REGEX_DEFAULT, lev=CONFIG_LEV_LEX)
+        STYLES = get_opt('id_styles', STYLES_DEFAULT, lev=CONFIG_LEV_LEX)
+        STYLES_NO = get_opt('id_styles_no', STYLES_NO_DEFAULT, lev=CONFIG_LEV_LEX)
         # Compile regex
         self.pattern = re.compile(FIND_REGEX)
+        self.pattern_styles = re.compile(STYLES)
+        self.pattern_styles_no = re.compile(STYLES_NO)
         # Run lexer scan form start
         self.set_progress(10)
         ed.lexer_scan(self.start_l)
@@ -106,7 +118,7 @@ class Command:
             self.set_progress(-1)
             return
         for token in tokenlist:
-            if not token_style_ok(token['style']):
+            if not self.token_style_ok(token['style']):
                 continue
             idd = token['str'].strip()
             if not CASE_SENSITIVE:
@@ -199,6 +211,8 @@ class Command:
         self.end_l = None
         self.want_exit = False
         self.pattern = None
+        self.pattern_styles = None
+        self.pattern_styles_no = None
         # Restore original position
         if self.original:
             ed.set_caret(self.original[0], self.original[1], id=CARET_SET_ONE)
@@ -362,6 +376,8 @@ class Command:
 
   "case_sens": true, // case sensitive search
   "id_regex": "\w+", // regex to find id's
+  "id_styles": "(?i)id[\\w\\s]*", // use tokens with these styles
+  "id_styles_no": "(?i).*keyword.*", // ignore tokens with these styles
 
 Also you can write to CudaText's user.json these options:
 
