@@ -1,3 +1,6 @@
 
+2018.08.12
++ add: options "id_styles", "id_styles_no" (must be in lexer config)
+
 2018.08.11
 initial version
