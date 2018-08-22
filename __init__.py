@@ -20,6 +20,11 @@ STYLES_NO_DEFAULT = '(?i).*keyword.*'
 STYLES = STYLES_DEFAULT
 STYLES_NO = STYLES_NO_DEFAULT
 
+NON_STANDART_LEXERS = {
+'Markdown': r'(?i)text[\w\s]*',
+'PHP': r'(?i)var[\w\s]*'
+}
+
 MARKER_BG_COLOR = 0xFFAAAA
 MARKER_F_COLOR  = 0x005555
 MARKER_BORDER_COLOR = 0xFF0000
@@ -48,6 +53,7 @@ class Command:
     pattern = None
     pattern_styles = None
     pattern_styles_no = None
+    naive_mode = False
     
     
     def __init__(self):
@@ -72,6 +78,10 @@ class Command:
     def toggle(self):
         global FIND_REGEX
         global CASE_SENSITIVE
+        global STYLES_DEFAULT
+        global STYLES_NO_DEFAULT
+        global STYLES
+        global STYLES_NO
         if len(ed.get_carets())!=1:
             msg_status('Sync Editing: Need single caret')
             return
@@ -96,6 +106,14 @@ class Command:
         self.set_progress(5)
         ed.set_prop(PROP_MARKED_RANGE, (self.start_l, self.end_l))
         ed.set_prop(PROP_TAG, 'sync_edit:1')
+        # Go naive way if lexer id none or other text file
+        cur_lexer = ed.get_prop(PROP_LEXER_FILE)
+        if cur_lexer in NON_STANDART_LEXERS:
+            # If it if non-standart lexer, change it's behaviour
+            STYLES_DEFAULT = NON_STANDART_LEXERS[cur_lexer]
+        elif cur_lexer == '':
+            # If lexer is none, go very naive way
+            self.naive_mode = True
         # Load lexer config
         CASE_SENSITIVE = get_opt('case_sens', True, lev=CONFIG_LEV_LEX)
         FIND_REGEX = get_opt('id_regex', FIND_REGEX_DEFAULT, lev=CONFIG_LEV_LEX)
@@ -111,24 +129,35 @@ class Command:
         self.set_progress(40)
         # Find all occurences of regex
         tokenlist = ed.get_token(TOKEN_LIST_SUB, self.start_l, self.end_l)
-        if not tokenlist:
+        if not tokenlist and not self.naive_mode:
             self.reset()
             self.saved_sel = (0,0)
             msg_status('Sync Editing: Cannot find IDs in selection')
             self.set_progress(-1)
             return
-        for token in tokenlist:
-            if not self.token_style_ok(token['style']):
-                continue
-            idd = token['str'].strip()
-            if not CASE_SENSITIVE:
-                idd = idd.lower()
-            old_style_token = ((token['x1'], token['y1']), (token['x2'], token['y2']), token['str'], token['style'])
-            if idd in self.dictionary:
-                if old_style_token not in self.dictionary[idd]:
-                    self.dictionary[idd].append(old_style_token)
-            else:
-                self.dictionary[idd] = [(old_style_token)]
+        elif self.naive_mode:
+            # Naive filling
+            for y in range(self.start_l, self.end_l+1):
+                cur_line = ed.get_text_line(y)
+                for match in self.pattern.finditer(cur_line):
+                    token = ((match.start(), y), (match.end(), y), match.group(), 'id')
+                    if match.group() in self.dictionary:
+                        self.dictionary[match.group()].append(token)
+                    else:
+                        self.dictionary[match.group()] = [(token)]
+        else:
+            for token in tokenlist:
+                if not self.token_style_ok(token['style']):
+                    continue
+                idd = token['str'].strip()
+                if not CASE_SENSITIVE:
+                    idd = idd.lower()
+                old_style_token = ((token['x1'], token['y1']), (token['x2'], token['y2']), token['str'], token['style'])
+                if idd in self.dictionary:
+                    if old_style_token not in self.dictionary[idd]:
+                        self.dictionary[idd].append(old_style_token)
+                else:
+                    self.dictionary[idd] = [(old_style_token)]
         # Fix tokens
         self.set_progress(60)
         self.fix_tokens()
@@ -213,6 +242,7 @@ class Command:
         self.pattern = None
         self.pattern_styles = None
         self.pattern_styles_no = None
+        self.naive_mode = False
         # Restore original position
         if self.original:
             ed.set_caret(self.original[0], self.original[1], id=CARET_SET_ONE)
