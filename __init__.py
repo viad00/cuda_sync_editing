@@ -359,6 +359,9 @@ class Command:
         while self.pattern.match(first_y_line[start_pos:]):
             start_pos -= 1
         start_pos += 1
+        # Workaround for EOL #65
+        if start_pos < 0:
+            start_pos = 0
         # Workaround for empty id (eg. when it was deleted) #62
         if not self.pattern.match(first_y_line[start_pos:]):
             self.our_key = old_key
@@ -381,6 +384,9 @@ class Command:
             while self.pattern.match(y_line[x:]):
                 x -= 1
             x += 1
+            # Workaround for EOL #65
+            if x < 0:
+                x = 0
             self.dictionary[new_key].append(((x, y), (x+len(new_key), y), new_key, 'Id'))
         # End rebuilding dictionary
         self.our_key = new_key
