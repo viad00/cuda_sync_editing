@@ -12,7 +12,7 @@ from cudax_lib import html_color_to_int, get_opt, set_opt, CONFIG_LEV_USER, CONF
 MARKER_CODE = 1002 
 
 CASE_SENSITIVE = True
-FIND_REGEX_DEFAULT = r'[a-zA-Z_]\w*'
+FIND_REGEX_DEFAULT = r'\w+'
 FIND_REGEX = FIND_REGEX_DEFAULT
 
 STYLES_DEFAULT = r'(?i)id[\w\s]*'
