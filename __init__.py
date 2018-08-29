@@ -22,8 +22,8 @@ STYLES_NO = STYLES_NO_DEFAULT
 
 NON_STANDART_LEXERS = {
   'Markdown': 'Text',
+  'PHP': 'Var',
   'reStructuredText': 'Text',
-  'PHP': r'(?i)var[\w\s]*'
   }
 
 MARKER_BG_COLOR = 0xFFAAAA
