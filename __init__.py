@@ -21,9 +21,10 @@ STYLES = STYLES_DEFAULT
 STYLES_NO = STYLES_NO_DEFAULT
 
 NON_STANDART_LEXERS = {
-'Markdown': r'(?i)text[\w\s]*',
-'PHP': r'(?i)var[\w\s]*'
-}
+  'Markdown': 'Text',
+  'reStructuredText': 'Text',
+  'PHP': r'(?i)var[\w\s]*'
+  }
 
 MARKER_BG_COLOR = 0xFFAAAA
 MARKER_F_COLOR  = 0x005555
