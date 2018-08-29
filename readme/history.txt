@@ -1,6 +1,8 @@
 
-2018.08.28
-+ add: plugin works in "none" lexer and Markdown lexer
+2018.08.29
++ add: support for reStructuredText lexer
++ add: support for Markdown lexer
++ add: support for "none" lexer
 
 2018.08.12
 + add: options "id_styles", "id_styles_no" (must be in lexer config)
