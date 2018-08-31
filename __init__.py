@@ -23,8 +23,12 @@ STYLES_NO = STYLES_NO_DEFAULT
 NON_STANDART_LEXERS = {
   'Markdown': 'Text',
   'PHP': 'Var',
-  'reStructuredText': 'Text',
-  }
+}
+  
+NAIVE_LEXERS = [
+  'reStructuredText',
+  'Textile',
+]
 
 MARKER_BG_COLOR = 0xFFAAAA
 MARKER_F_COLOR  = 0x005555
@@ -115,6 +119,8 @@ class Command:
         elif cur_lexer == '':
             # If lexer is none, go very naive way
             self.naive_mode = True
+        if cur_lexer in NAIVE_LEXERS or get_opt('syncedit_naive_mode', False, lev=CONFIG_LEV_LEX):
+            self.naive_mode = True
         # Load lexer config
         CASE_SENSITIVE = get_opt('case_sens', True, lev=CONFIG_LEV_LEX)
         FIND_REGEX = get_opt('id_regex', FIND_REGEX_DEFAULT, lev=CONFIG_LEV_LEX)
@@ -130,6 +136,7 @@ class Command:
         self.set_progress(40)
         # Find all occurences of regex
         tokenlist = ed.get_token(TOKEN_LIST_SUB, self.start_l, self.end_l)
+        print(tokenlist)
         if not tokenlist and not self.naive_mode:
             self.reset()
             self.saved_sel = (0,0)
@@ -415,6 +422,7 @@ class Command:
   "id_regex": "\w+", // regex to find id's
   "id_styles": "(?i)id[\\w\\s]*", // use tokens with these styles
   "id_styles_no": "(?i).*keyword.*", // ignore tokens with these styles
+  "syncedit_naive_mode": false, // use 'naive' algorithm (search without lexer analysis, e.g. for plain text)
 
 Also you can write to CudaText's user.json these options:
 
