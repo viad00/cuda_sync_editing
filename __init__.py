@@ -54,7 +54,7 @@ class Command:
     start_l = None
     end_l = None
     want_exit = False
-    saved_sel = (0,0)
+    saved_sel = None
     pattern = None
     pattern_styles = None
     pattern_styles_no = None
@@ -92,11 +92,11 @@ class Command:
             return
         original = ed.get_text_sel()
         # Check if we have selection of text
-        if not original and self.saved_sel == (0,0):
+        if not original and self.saved_sel is None:
             msg_status('Sync Editing: Make selection first')
             return
         self.set_progress(3)
-        if self.saved_sel != (0,0):
+        if self.saved_sel is not None:
             self.start_l, self.end_l = self.saved_sel
             self.selected = True
         else:
@@ -139,7 +139,7 @@ class Command:
         #print(tokenlist)
         if not tokenlist and not self.naive_mode:
             self.reset()
-            self.saved_sel = (0,0)
+            self.saved_sel = None
             msg_status('Sync Editing: Cannot find IDs in selection')
             self.set_progress(-1)
             return
@@ -172,14 +172,14 @@ class Command:
         # Exit if no id's (eg: comments and etc)
         if len(self.dictionary) == 0:
             self.reset()
-            self.saved_sel = (0,0)
+            self.saved_sel = None
             msg_status('Sync Editing: Cannot find IDs in selection')
             self.set_progress(-1)
             return
         # Exit if 1 occurence found (issue #44)
         elif len(self.dictionary) == 1 and len(self.dictionary[list(self.dictionary.keys())[0]]) == 1:
             self.reset()
-            self.saved_sel = (0,0)
+            self.saved_sel = None
             msg_status('Sync Editing: Need several IDs in selection')
             self.set_progress(-1)
             return
@@ -289,11 +289,11 @@ class Command:
                 else:
                     if not ASK_TO_EXIT:
                         self.reset()
-                        self.saved_sel = (0,0)
+                        self.saved_sel = None
                         return
                     if msg_box('Do you want to cancel Sync Editing mode?', MB_YESNO+MB_ICONQUESTION) == ID_YES:
                         self.reset()
-                        self.saved_sel = (0,0)
+                        self.saved_sel = None
                         return
                     else:
                         self.want_exit = False
