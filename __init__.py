@@ -251,6 +251,7 @@ class Command:
         self.pattern_styles = None
         self.pattern_styles_no = None
         self.naive_mode = False
+        self.saved_sel = None
         # Restore original position
         if self.original:
             ed.set_caret(self.original[0], self.original[1], id=CARET_SET_ONE)
