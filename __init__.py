@@ -136,7 +136,7 @@ class Command:
         self.set_progress(40)
         # Find all occurences of regex
         tokenlist = ed.get_token(TOKEN_LIST_SUB, self.start_l, self.end_l)
-        print(tokenlist)
+        #print(tokenlist)
         if not tokenlist and not self.naive_mode:
             self.reset()
             self.saved_sel = (0,0)
