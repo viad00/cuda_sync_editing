@@ -1,4 +1,10 @@
 
+2019.07.16
+- avoid deprecated API
+
+2018.09.08
+- fix: minor bug with 2 selections
+
 2018.08.29
 + add: support for reStructuredText lexer
 + add: support for Markdown lexer

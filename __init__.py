@@ -132,7 +132,7 @@ class Command:
         self.pattern_styles_no = re.compile(STYLES_NO)
         # Run lexer scan form start
         self.set_progress(10)
-        ed.lexer_scan(self.start_l)
+        ed.action(EDACTION_LEXER_SCAN, self.start_l) #API 1.0.289
         self.set_progress(40)
         # Find all occurences of regex
         tokenlist = ed.get_token(TOKEN_LIST_SUB, self.start_l, self.end_l)
