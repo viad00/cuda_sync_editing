@@ -36,11 +36,11 @@ MARKER_BORDER_COLOR = 0xFF0000
 MARK_COLORS = True
 ASK_TO_EXIT = True
 
-_d = app_proc(PROC_THEME_SYNTAX_DATA_GET, '')
+theme = app_proc(PROC_THEME_SYNTAX_DICT_GET, '')
+
 def theme_color(name, is_font):
-    for i in _d:
-        if i['name']==name:
-            return i['color_font' if is_font else 'color_back']
+    if name in theme:
+        return theme[name]['color_font' if is_font else 'color_back']
     return 0x808080
 
 class Command:
