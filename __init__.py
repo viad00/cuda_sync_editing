@@ -9,7 +9,7 @@ from cudatext_keys import *
 from cudax_lib import html_color_to_int, get_opt, set_opt, CONFIG_LEV_USER, CONFIG_LEV_LEX
 
 # Uniq value for all marker plugins
-MARKER_CODE = 1002 
+MARKER_CODE = app_proc(PROC_GET_UNIQUE_TAG, '') 
 
 CASE_SENSITIVE = True
 FIND_REGEX_DEFAULT = r'\w+'
