@@ -8,6 +8,9 @@ from cudatext import *
 from cudatext_keys import *
 from cudax_lib import html_color_to_int, get_opt, set_opt, CONFIG_LEV_USER, CONFIG_LEV_LEX
 
+from cudax_lib import get_translation
+_ = get_translation(__file__)  # I18N
+
 # Uniq value for all marker plugins
 MARKER_CODE = app_proc(PROC_GET_UNIQUE_TAG, '') 
 
@@ -88,12 +91,12 @@ class Command:
         global STYLES
         global STYLES_NO
         if len(ed.get_carets())!=1:
-            msg_status('Sync Editing: Need single caret')
+            msg_status(_('Sync Editing: Need single caret'))
             return
         original = ed.get_text_sel()
         # Check if we have selection of text
         if not original and self.saved_sel is None:
-            msg_status('Sync Editing: Make selection first')
+            msg_status(_('Sync Editing: Make selection first'))
             return
         self.set_progress(3)
         if self.saved_sel is not None:
@@ -140,7 +143,7 @@ class Command:
         if not tokenlist and not self.naive_mode:
             self.reset()
             self.saved_sel = None
-            msg_status('Sync Editing: Cannot find IDs in selection')
+            msg_status(_('Sync Editing: Cannot find IDs in selection'))
             self.set_progress(-1)
             return
         elif self.naive_mode:
@@ -173,14 +176,14 @@ class Command:
         if len(self.dictionary) == 0:
             self.reset()
             self.saved_sel = None
-            msg_status('Sync Editing: Cannot find IDs in selection')
+            msg_status(_('Sync Editing: Cannot find IDs in selection'))
             self.set_progress(-1)
             return
         # Exit if 1 occurence found (issue #44)
         elif len(self.dictionary) == 1 and len(self.dictionary[list(self.dictionary.keys())[0]]) == 1:
             self.reset()
             self.saved_sel = None
-            msg_status('Sync Editing: Need several IDs in selection')
+            msg_status(_('Sync Editing: Need several IDs in selection'))
             self.set_progress(-1)
             return
         self.set_progress(90)
@@ -196,9 +199,9 @@ class Command:
                     color_font=0xb000000, color_bg=color, color_border=0xb000000, border_down=1)
         self.set_progress(-1)
         if self.want_exit:
-            msg_status('Sync Editing: Cancel? Click somewhere else to cancel, or on ID to continue.')
+            msg_status(_('Sync Editing: Cancel? Click somewhere else to cancel, or on ID to continue.'))
         else:
-            msg_status('Sync Editing: Click on ID to edit it, or somewhere else to cancel')
+            msg_status(_('Sync Editing: Click on ID to edit it, or somewhere else to cancel'))
         
         
     # Fix tokens with spaces at the start of the line (eg: ((0, 50), (16, 50), '        original', 'Id')) and remove if it has 1 occurence (issue #44 and #45)
@@ -260,7 +263,7 @@ class Command:
         ed.set_prop(PROP_MARKED_RANGE, (-1, -1))
         self.set_progress(-1)
         ed.set_prop(PROP_TAG, 'sync_edit:0')
-        msg_status('Sync Editing: Cancelled')
+        msg_status(_('Sync Editing: Cancelled'))
         
     
     def on_click(self, ed_self, state):
@@ -284,7 +287,7 @@ class Command:
             # Reset if None
             if not self.our_key:
                 if not self.want_exit:
-                    msg_status('Sync Editing: Not a word! Click another, or click somewhere else again')
+                    msg_status(_('Sync Editing: Not a word! Click another, or click somewhere else again'))
                     self.want_exit = True
                     return
                 else:
@@ -292,7 +295,7 @@ class Command:
                         self.reset()
                         self.saved_sel = None
                         return
-                    if msg_box('Do you want to cancel Sync Editing mode?', MB_YESNO+MB_ICONQUESTION) == ID_YES:
+                    if msg_box(_('Do you want to cancel Sync Editing mode?'), MB_YESNO+MB_ICONQUESTION) == ID_YES:
                         self.reset()
                         self.saved_sel = None
                         return
@@ -417,7 +420,7 @@ class Command:
     
     def config(self):
         msg_box(
-'''To configure Sync Editing, open lexer-specific config in CudaText (Options / Settings-more / Settings lexer specific) and write there options: case sensitive, regular expression for identifiers:
+_('''To configure Sync Editing, open lexer-specific config in CudaText (Options / Settings-more / Settings lexer specific) and write there options: case sensitive, regular expression for identifiers:
 
   "case_sens": true, // case sensitive search
   "id_regex": "\w+", // regex to find id's
@@ -429,4 +432,4 @@ Also you can write to CudaText's user.json these options:
 
   "syncedit_mark_words": true, // allows fancy colorizing of words in selection
   "syncedit_ask_to_exit": true, // show confirmation before auto-cancelling
-''', MB_OK+MB_ICONINFO)
+'''), MB_OK+MB_ICONINFO)
