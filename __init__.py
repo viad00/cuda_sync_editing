@@ -266,8 +266,11 @@ class Command:
         msg_status(_('Sync Editing: Cancelled'))
 
 
-    def keyclick(self):
-        return self.on_click(ed, app_proc(PROC_GET_KEYSTATE, ''))
+    def doclick(self):
+        # state = app_proc(PROC_GET_KEYSTATE, '')
+        state = ''
+        return self.on_click(ed, state)
+
 
     def on_click(self, ed_self, state):
         global CASE_SENSITIVE

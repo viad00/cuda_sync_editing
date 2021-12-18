@@ -23,7 +23,7 @@ method=reset
 [item6]
 section=commands
 caption=Sync Editing\Emulate mouse click
-method=keyclick
+method=doclick
 
 [item10]
 section=commands
