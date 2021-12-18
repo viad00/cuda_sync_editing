@@ -264,8 +264,11 @@ class Command:
         self.set_progress(-1)
         ed.set_prop(PROP_TAG, 'sync_edit:0')
         msg_status(_('Sync Editing: Cancelled'))
-        
-    
+
+
+    def keyclick(self):
+        return self.on_click(ed, app_proc(PROC_GET_KEYSTATE, ''))
+
     def on_click(self, ed_self, state):
         global CASE_SENSITIVE
         global FIND_REGEX

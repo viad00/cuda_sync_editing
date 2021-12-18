@@ -20,6 +20,11 @@ section=commands
 caption=Sync Editing\Cancel
 method=reset
 
+[item6]
+section=commands
+caption=Sync Editing\Emulate mouse click
+method=keyclick
+
 [item10]
 section=commands
 caption=Sync Editing\Config
