@@ -39,6 +39,10 @@ Now plugin must detect tag-names as IDs, and must allow to rename them.
 To detect also tag properties as IDs, write:
 
   "id_styles": "Tag id correct|Tag prop",
+  
+To detect words inside quotes values, you will need this option (it overrides "id_styles"):
+
+  "syncedit_naive_mode": true,
 
 2) Markdown.
 By default, plugin cannot detect separate words in Markdown.
