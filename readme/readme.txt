@@ -17,12 +17,18 @@ Plugin ignores IDs, which are located in syntax "comments" and "strings"
 (this depends on lexer settings).
 
 
-Options
--------
+Config
+------
 
 Plugin has several options, which are listed/described in the help message-box.
 Call menu item "Options / Settings-plugins / Sync Editing / Config".
 There are options "case sensitive", "reg.ex. for identifiers" and few UI options.
+
+Where do names of "lexer styles" come from, e.g. "Id keyword"?
+They come from the dialog "Lexer properties", which can be called in CudaText by
+"Options / Lexers / Lexer properties". You can find style names there, seeing
+colors of all styles. For example, for HTML you can find that lexer style for
+HTML tag names is "Tag id correct".
 
 
 Lexers HTML and Markdown
