@@ -95,6 +95,10 @@ class Command:
             msg_status(_('Sync Editing: Need single caret'))
             return
         caret = carets[0]
+
+        def restore_caret():
+            ed.set_caret(caret[0], caret[1])
+
         original = ed.get_text_sel()
         # Check if we have selection of text
         if not original and self.saved_sel is None:
@@ -147,6 +151,7 @@ class Command:
             self.saved_sel = None
             msg_status(_('Sync Editing: Cannot find IDs in selection'))
             self.set_progress(-1)
+            restore_caret()
             return
         elif self.naive_mode:
             # Naive filling
@@ -180,6 +185,7 @@ class Command:
             self.saved_sel = None
             msg_status(_('Sync Editing: Cannot find IDs in selection'))
             self.set_progress(-1)
+            restore_caret()
             return
         # Exit if 1 occurence found (issue #44)
         elif len(self.dictionary) == 1 and len(self.dictionary[list(self.dictionary.keys())[0]]) == 1:
@@ -187,6 +193,7 @@ class Command:
             self.saved_sel = None
             msg_status(_('Sync Editing: Need several IDs in selection'))
             self.set_progress(-1)
+            restore_caret()
             return
         self.set_progress(90)
         # Mark all words that we can modify with pretty light color
@@ -205,7 +212,7 @@ class Command:
         else:
             msg_status(_('Sync Editing: Click on ID to edit it, or somewhere else to cancel'))
         # restore caret but w/o selection
-        ed.set_caret(caret[0], caret[1])
+        restore_caret()
         
         
     # Fix tokens with spaces at the start of the line (eg: ((0, 50), (16, 50), '        original', 'Id')) and remove if it has 1 occurence (issue #44 and #45)
