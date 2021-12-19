@@ -33,12 +33,12 @@ By default, plugin don't support lexer HTML and Markdown, but this can be custom
 Open HTML-specific config file: activate HTML lexer, call "Options / Settings - lexer specific".
 File "settings/lexer HTML.json" will be opened. Write there:
 
-  "id_styles": "Tag id correct",
+  "id_styles": "Text|Tag id correct",
 
 Now plugin must detect tag-names as IDs, and must allow to rename them.
 To detect also tag properties as IDs, write:
 
-  "id_styles": "Tag id correct|Tag prop",
+  "id_styles": "Text|Tag id correct|Tag prop",
   
 To detect words inside quotes values, you will need this option (it overrides "id_styles"):
 
