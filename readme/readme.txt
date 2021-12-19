@@ -10,17 +10,19 @@ Usage:
  - Edit it (type new text)
  - To cancel Sync Editing: click somewhere else; or leave ID's line (e.g. with arrow keys); or call menu item "Plugins / Sync Editing / Cancel"
 
+To detect IDs, plugin gets lexer fragments with style beginning with "Id",
+but excludes fragments with style "Id keyword". This is customizable.
+
+Plugin ignores IDs, which are located in syntax "comments" and "strings"
+(this depends on lexer settings).
+
 
 Options
 -------
 
-Plugin has several options, which are listed/described in the help message-box. 
+Plugin has several options, which are listed/described in the help message-box.
 Call menu item "Options / Settings-plugins / Sync Editing / Config".
-Options "case sensitive", "reg.ex. for identifiers" and few UI options.
-
-Plugin ignores IDs, which are located in syntax comments/strings.
-To detect comments/strings, plugin uses lexer API, it wants words
-with lexer style, beginning with "Id", but not containing "keyword".
+There are options "case sensitive", "reg.ex. for identifiers" and few UI options.
 
 
 Lexers HTML and Markdown
