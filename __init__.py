@@ -90,9 +90,11 @@ class Command:
         global STYLES_NO_DEFAULT
         global STYLES
         global STYLES_NO
-        if len(ed.get_carets())!=1:
+        carets = ed.get_carets()
+        if len(carets)!=1:
             msg_status(_('Sync Editing: Need single caret'))
             return
+        caret = carets[0]
         original = ed.get_text_sel()
         # Check if we have selection of text
         if not original and self.saved_sel is None:
@@ -202,6 +204,8 @@ class Command:
             msg_status(_('Sync Editing: Cancel? Click somewhere else to cancel, or on ID to continue.'))
         else:
             msg_status(_('Sync Editing: Click on ID to edit it, or somewhere else to cancel'))
+        # restore caret but w/o selection
+        ed.set_caret(caret[0], caret[1])
         
         
     # Fix tokens with spaces at the start of the line (eg: ((0, 50), (16, 50), '        original', 'Id')) and remove if it has 1 occurence (issue #44 and #45)

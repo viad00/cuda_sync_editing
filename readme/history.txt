@@ -1,6 +1,7 @@
 
-2021.12.18
+2021.12.19
 + add: command 'Emulate mouse click' for ppl who don't like mouse (by Alexey T.)
+- fix: after activating, plugin moved caret to beginning of file
 
 2021.03.17
 + add: i18n (from Markus)
