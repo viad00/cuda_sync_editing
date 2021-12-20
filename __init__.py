@@ -24,11 +24,12 @@ STYLES = STYLES_DEFAULT
 STYLES_NO = STYLES_NO_DEFAULT
 
 NON_STANDART_LEXERS = {
-  'Markdown': 'Text',
+  'HTML': 'Text|Tag id correct|Tag prop',
   'PHP': 'Var',
 }
   
 NAIVE_LEXERS = [
+  'Markdown', # it has 'Text' rule for many chars, including punctuation+spaces
   'reStructuredText',
   'Textile',
 ]
