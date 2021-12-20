@@ -31,11 +31,15 @@ colors of all styles. For example, for HTML you can find that lexer style for
 HTML tag names is "Tag id correct".
 
 
-Lexers HTML and Markdown
-------------------------
+Support custom lexers
+---------------------
 
-By default, plugin don't support lexer HTML and Markdown, but this can be customized.
-1) HTML.
+Plugin supports lexers HTML and Markdown via presets, ie special built-in settings.
+Let's describe these settings here, so user can apply something similar to another lexers.
+What to do if plugin doesn's support some lexer?
+For example, plugin supports original "HTML" but not many forked "HTML nnnnnn" lexers.
+
+1) HTML (what to do for forked lexers "HTML nnnnn").
 Open HTML-specific config file: activate HTML lexer, call "Options / Settings - lexer specific".
 File "settings/lexer HTML.json" will be opened. Write there:
 
@@ -50,8 +54,7 @@ To detect words inside quotes values, you will need this option (it overrides "i
 
   "syncedit_naive_mode": true,
 
-2) Markdown.
-By default, plugin cannot detect separate words in Markdown.
+2) Markdown (what to do for similar lexers).
 Open Markdown-specific config, file "settings/lexer Markdown.json". Write there:
 
   "syncedit_naive_mode": true,
