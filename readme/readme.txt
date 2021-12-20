@@ -17,12 +17,23 @@ Plugin ignores IDs, which are located in syntax "comments" and "strings"
 (this depends on lexer settings).
 
 
-Config
-------
+Configuration
+-------------
 
-Plugin has several options, which are listed/described in the help message-box.
-Call menu item "Options / Settings-plugins / Sync Editing / Config".
-There are options "case sensitive", "reg.ex. for identifiers" and few UI options.
+To configure Sync Editing, open lexer-specific config in CudaText
+"Options / Settings lexer specific", and write there options:
+
+  "case_sens": true,                 // case sensitive search
+  "id_regex": "\w+",                 // RegEx to find ID's
+  "id_styles": "(?i)id[\\w\\s]*",    // RegEx to find tokens with these styles, like "Id"/"Id type" etc
+  "id_styles_no": "(?i).*keyword.*", // RegEx to ignore tokens with these styles, like "Id keyword"
+  "syncedit_naive_mode": false,      // use 'naive' algorithm (search without lexer analysis, e.g. for plain text)
+
+Also you can write to CudaText's user.json these options:
+
+  "syncedit_mark_words": true,       // allows fancy colorizing of words in selection
+  "syncedit_ask_to_exit": true,      // show confirmation before auto-cancelling
+  
 
 Where do names of "lexer styles" come from, e.g. "Id keyword"?
 They come from the dialog "Lexer properties", which can be called in CudaText by
@@ -31,15 +42,15 @@ colors of all styles. For example, for HTML you can find that lexer style for
 HTML tag names is "Tag id correct".
 
 
-Support custom lexers
----------------------
+Configuration examples
+----------------------
 
 Plugin supports lexers HTML and Markdown via presets, ie special built-in settings.
 Let's describe these settings here, so user can apply something similar to another lexers.
 What to do if plugin doesn's support some lexer?
 For example, plugin supports original "HTML" but not many forked "HTML nnnnnn" lexers.
 
-1) HTML (what to do for forked lexers "HTML nnnnn").
+1) HTML (ie what to do for forked lexers "HTML nnnnn").
 Open HTML-specific config file: activate HTML lexer, call "Options / Settings - lexer specific".
 File "settings/lexer HTML.json" will be opened. Write there:
 
@@ -54,7 +65,7 @@ To detect words inside quotes values, you will need this option (it overrides "i
 
   "syncedit_naive_mode": true,
 
-2) Markdown (what to do for similar lexers).
+2) Markdown (ie what to do for similar lexers).
 Open Markdown-specific config, file "settings/lexer Markdown.json". Write there:
 
   "syncedit_naive_mode": true,

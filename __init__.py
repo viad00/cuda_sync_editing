@@ -3,6 +3,7 @@
 # MIT License
 # 2018
 import re
+import os
 from . import randomcolor
 from cudatext import *
 from cudatext_keys import *
@@ -443,17 +444,10 @@ class Command:
                 
     
     def config(self):
-        msg_box(
-_('''To configure Sync Editing, open lexer-specific config in CudaText (Options / Settings-more / Settings lexer specific) and write there options: case sensitive, regular expression for identifiers:
-
-  "case_sens": true, // case sensitive search
-  "id_regex": "\w+", // regex to find id's
-  "id_styles": "(?i)id[\\w\\s]*", // use tokens with these styles
-  "id_styles_no": "(?i).*keyword.*", // ignore tokens with these styles
-  "syncedit_naive_mode": false, // use 'naive' algorithm (search without lexer analysis, e.g. for plain text)
-
-Also you can write to CudaText's user.json these options:
-
-  "syncedit_mark_words": true, // allows fancy colorizing of words in selection
-  "syncedit_ask_to_exit": true, // show confirmation before auto-cancelling
-'''), MB_OK+MB_ICONINFO)
+        if msg_box(_('Open plugin\'s readme.txt to read about configuring?'), 
+                MB_OKCANCEL+MB_ICONQUESTION) == ID_OK:
+            fn = os.path.join(os.path.dirname(__file__), 'readme', 'readme.txt')
+            if os.path.isfile(fn):
+                file_open(fn)
+            else:
+                msg_status(_('Cannot find file: ')+fn)
